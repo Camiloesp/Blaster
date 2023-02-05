@@ -64,6 +64,10 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
+	// RPC from client to server
+	UFUNCTION(Server, Reliable)
+		void ServerEquipButtonPressed(const FInputActionValue& Value);//);
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)

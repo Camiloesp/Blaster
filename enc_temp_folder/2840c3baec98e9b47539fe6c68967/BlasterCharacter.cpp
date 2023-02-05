@@ -153,7 +153,6 @@ void ABlasterCharacter::EquipButtonPressed(const FInputActionValue& Value)
 		}
 		else
 		{
-			// We dont want to do important stuff like equipping weapons on clients. Tell server to do it.
 			ServerEquipButtonPressed(Value);
 		}
 	}
