@@ -64,10 +64,6 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
-	// RPC from client to server
-	UFUNCTION(Server, Reliable)
-		void ServerEquipButtonPressed(const FInputActionValue& Value);//);
-
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -76,12 +72,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UBlasterInputConfigData* InputConfigData;
 
+	// Input functions
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-
 	void EquipButtonPressed(const FInputActionValue& Value);
+	void CrouchButtonPressed(const FInputActionValue& Value);
+	void AimButtonPressed(const FInputActionValue& Value);
+
+	// RPC from client to server
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed(const FInputActionValue& Value);//);
 
 public:
+
+	bool IsWeaponEquipped();
+	bool IsAiming();
 
 	/* Getters */
 

@@ -20,6 +20,8 @@ public:
 	// Both classes depend on each other. We need to access functions from each other so friend class will allow them to access them even if they are private/protected.
 	friend ABlasterCharacter; //friend class ABlasterCharacter;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -34,9 +36,23 @@ public:
 private:
 
 	ABlasterCharacter* Character;
+
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
 
+	UPROPERTY(Replicated)
+	bool bAiming;
+
 protected:
+
+	void SetAiming(bool bIsAiming);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool bIsAiming);
+
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
 public:
 
 	void EquipWeapon(AWeapon* WeaponToEquip);

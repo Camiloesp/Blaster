@@ -35,6 +35,7 @@ ABlasterCharacter::ABlasterCharacter()
 	// Character stands still independent from controller rotation. Orient towards its own movement direction.
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(GetRootComponent());
@@ -84,6 +85,10 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::EquipButtonPressed);
+		
+		EnhancedInputComponent->BindAction(InputConfigData->CrouchAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::CrouchButtonPressed); // Input action with 2 triggers: Pressed and then Released.
+
+		EnhancedInputComponent->BindAction(InputConfigData->AimAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::AimButtonPressed); // Input action with 2 triggers: Pressed and then Released.
 	}
 }
 
@@ -166,6 +171,37 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation(const FInputActi
 	{
 		Combat->EquipWeapon(OverlappingWeapon);
 	}
+}
+
+void ABlasterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
+}
+
+void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
+{
+	if (Combat)
+	{
+		//Combat->bAiming = !Combat->bAiming;
+		Combat->SetAiming(!Combat->bAiming);
+	}
+}
+
+bool ABlasterCharacter::IsWeaponEquipped()
+{
+	return (Combat && Combat->EquippedWeapon);
+}
+
+bool ABlasterCharacter::IsAiming()
+{
+	return (Combat && Combat->bAiming);
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* NewOverlappingWeapon)
