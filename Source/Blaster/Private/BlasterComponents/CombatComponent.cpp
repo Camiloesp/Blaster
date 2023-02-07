@@ -17,6 +17,8 @@ UCombatComponent::UCombatComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
+	BaseWalkSpeed = 600.f;
+	AimWalkSpeed = 450.f;
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -34,7 +36,10 @@ void UCombatComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+	if (Character)
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}
 }
 
 
@@ -48,17 +53,24 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
+	/*
 	bAiming = bIsAiming;
-	if (!Character->HasAuthority())
+	if (!Character->HasAuthority()) // tutorial removed this line
 	{
 		ServerSetAiming(bIsAiming);
-	}
+		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}*/
+
+	bAiming = bIsAiming;
+	ServerSetAiming(bIsAiming);
+	if (Character) Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 {
 	//SetAiming(bIsAiming);
 	bAiming = bIsAiming;
+	if (Character) Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed; // Line not needed for me. Tutorial needs it to work, mine does not.
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
