@@ -191,7 +191,7 @@ void ABlasterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
 	{
 		Crouch();
 	}
-}
+} 
 
 void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 {
@@ -249,6 +249,13 @@ bool ABlasterCharacter::IsWeaponEquipped()
 bool ABlasterCharacter::IsAiming()
 {
 	return (Combat && Combat->bAiming);
+}
+
+AWeapon* ABlasterCharacter::GetEquippedWeapon()
+{
+	//if (!Combat) return nullptr;
+	//return Combat->EquippedWeapon;
+	return Combat ? Combat->EquippedWeapon : nullptr;
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* NewOverlappingWeapon)

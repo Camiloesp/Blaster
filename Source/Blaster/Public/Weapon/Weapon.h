@@ -72,6 +72,7 @@ public:
 
 	/* getters */
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 
 	/* setters */
 	void SetWeaponState(EWeaponState NewWeaponState);
