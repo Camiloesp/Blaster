@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 // Enhanced input
@@ -74,6 +75,8 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	AimOffset(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -196,6 +199,45 @@ void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 	{
 		//Combat->bAiming = !Combat->bAiming;
 		Combat->SetAiming(!Combat->bAiming);
+	}
+}
+
+void ABlasterCharacter::AimOffset(float DeltaTime)
+{
+	if (Combat && !Combat->EquippedWeapon) return;
+
+	// Get speed
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.f;
+	float Speed = Velocity.Size();
+	
+	bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+	// Set Yaw offset for animation BP
+	if (Speed == 0.f && !bIsInAir) // Standing still, not jumping.
+	{
+		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation); // If looking around is inverted, reverse the order of this rotators in NormalizedDeltaRotator()
+		AO_Yaw = DeltaAimRotation.Yaw;
+		bUseControllerRotationYaw = false;
+	}
+	if (Speed > 0.f || bIsInAir) // Running, or jumping
+	{
+		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		AO_Yaw = 0.f;
+		bUseControllerRotationYaw = true;
+	}
+
+	// Set Pitch offset for animation BP
+	AO_Pitch = GetBaseAimRotation().Pitch;
+
+	// Fix compression issue when sending negative values to network since they are mapped to be [0 - 360). Video # 60
+	if (AO_Pitch > 90.f && !IsLocallyControlled()) // if pitch is > than 90 we know we know that we can make a correction. Problem does not exist on character that we are locally controlling.
+	{
+		// Map pitch from [270, 360) to [-90, 0)
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
 	}
 }
 

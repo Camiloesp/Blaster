@@ -64,6 +64,11 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
+	// Aim offset
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartingAimRotation;
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -84,12 +89,17 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed(const FInputActionValue& Value);//);
 
+	void AimOffset(float DeltaTime);
+
+
 public:
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
 
 	/* Getters */
+	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 
 	/* Setters */
 	void SetOverlappingWeapon(AWeapon* NewOverlappingWeapon);
