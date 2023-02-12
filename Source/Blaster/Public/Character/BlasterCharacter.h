@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActions/BlasterInputConfigData.h"
 //#include "InputActionValue.h"
+#include "BlasterTypes/TurningInPlace.h"
 #include "BlasterCharacter.generated.h"
 
 class USpringArmComponent;
@@ -66,8 +67,12 @@ private:
 
 	// Aim offset
 	float AO_Yaw;
+	float InterpAO_Yaw;
 	float AO_Pitch;
 	FRotator StartingAimRotation;
+
+	ETurningInPlace TurningInPlace;
+	void TurnInPlace(float DeltaTime);
 
 protected:
 
@@ -100,6 +105,7 @@ public:
 	/* Getters */
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
+	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 	AWeapon* GetEquippedWeapon();
 
 	/* Setters */

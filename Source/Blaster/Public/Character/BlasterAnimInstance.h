@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "BlasterTypes/TurningInPlace.h"
 #include "BlasterAnimInstance.generated.h"
 
 class ABlasterCharacter;
@@ -56,6 +57,9 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = true))
 	FTransform LeftHandTransform;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = true))
+	ETurningInPlace TurningInPlace;
 
 public:
 	virtual void NativeInitializeAnimation() override;		// Like Beginplay. Called at at the start of the game, load UE and compile and so on.
