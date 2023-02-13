@@ -38,6 +38,7 @@ ABlasterCharacter::ABlasterCharacter()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 850.f);
 
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(GetRootComponent());
@@ -49,7 +50,12 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
+
+
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+
+	NetUpdateFrequency = 66.f;
+	MinNetUpdateFrequency = 33.f;
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -203,7 +209,20 @@ void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 		Combat->SetAiming(!Combat->bAiming);
 	}
 }
-
+/* Using ACharacter::Jump instead
+void ABlasterCharacter::Jump()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Super::Jump();
+	}
+	
+}
+*/
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
 	if (Combat && !Combat->EquippedWeapon) return;

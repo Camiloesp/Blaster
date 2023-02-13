@@ -89,6 +89,7 @@ protected:
 	void EquipButtonPressed(const FInputActionValue& Value);
 	void CrouchButtonPressed(const FInputActionValue& Value);
 	void AimButtonPressed(const FInputActionValue& Value);
+	//virtual void Jump() override;
 
 	// RPC from client to server
 	UFUNCTION(Server, Reliable)
