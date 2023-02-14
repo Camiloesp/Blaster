@@ -17,6 +17,7 @@
 #include "InputActions/BlasterInputConfigData.h" // list of inputs
 #include "Weapon/Weapon.h"
 #include "BlasterComponents/CombatComponent.h"
+#include "Character/BlasterAnimInstance.h"
 
 
 // Sets default values
@@ -105,6 +106,9 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(InputConfigData->CrouchAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::CrouchButtonPressed); // Input action with 2 triggers: Pressed and then Released.
 
 		EnhancedInputComponent->BindAction(InputConfigData->AimAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::AimButtonPressed); // Input action with 2 triggers: Pressed and then Released.
+
+		EnhancedInputComponent->BindAction(InputConfigData->FireAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::FireButtonPressed);
+		//EnhancedInputComponent->BindAction(InputConfigData->FireAction, ETriggerEvent::Completed, this, &ABlasterCharacter::FireButtonReleased);
 	}
 }
 
@@ -209,6 +213,22 @@ void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 		Combat->SetAiming(!Combat->bAiming);
 	}
 }
+void ABlasterCharacter::FireButtonPressed(const FInputActionValue& Value)
+{
+	if (Combat)
+	{
+		//GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString("Pressed!"));
+		Combat->FireButtonPressed(true);
+	}
+}
+void ABlasterCharacter::FireButtonReleased(const FInputActionValue& Value)
+{
+	if (Combat)
+	{
+		//GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString("Released!"));
+		Combat->FireButtonPressed(false);
+	}
+}
 /* Using ACharacter::Jump instead
 void ABlasterCharacter::Jump()
 {
@@ -288,6 +308,20 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		}
+	}
+}
+
+void ABlasterCharacter::PlayFireMontage(bool bAiming)
+{
+	if (!Combat || !Combat->EquippedWeapon) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName SectionName;
+		SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
 

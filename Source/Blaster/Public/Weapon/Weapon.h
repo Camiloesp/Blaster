@@ -8,6 +8,8 @@
 
 class USphereComponent;
 class UWidgetComponent;
+class UAnimationAsset;
+class ACasing;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -51,11 +53,17 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	UWidgetComponent* PickupWidget;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+	UAnimationAsset* FireAnimation;
+
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 	EWeaponState WeaponState;
 
 	UFUNCTION()
 	void OnRep_WeaponState();
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACasing> CasingClass;
 
 protected:
 	
@@ -69,6 +77,8 @@ protected:
 public:
 
 	void ShowPickupWidget(bool bShowWidget);
+
+	virtual void Fire(const FVector& HitTarget);
 
 	/* getters */
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }

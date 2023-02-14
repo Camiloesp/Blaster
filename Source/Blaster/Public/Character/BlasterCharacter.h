@@ -13,6 +13,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
 class UInputMappingContext;
+class UAnimMontage;
 
 class AWeapon;
 class UCombatComponent;
@@ -74,6 +75,8 @@ private:
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
 
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* FireWeaponMontage;
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -89,6 +92,8 @@ protected:
 	void EquipButtonPressed(const FInputActionValue& Value);
 	void CrouchButtonPressed(const FInputActionValue& Value);
 	void AimButtonPressed(const FInputActionValue& Value);
+	void FireButtonPressed(const FInputActionValue& Value);
+	void FireButtonReleased(const FInputActionValue& Value);
 	//virtual void Jump() override;
 
 	// RPC from client to server
@@ -99,6 +104,9 @@ protected:
 
 
 public:
+
+
+	void PlayFireMontage(bool bAiming);
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
