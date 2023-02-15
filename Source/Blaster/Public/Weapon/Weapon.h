@@ -21,6 +21,8 @@ enum class EWeaponState : uint8
 	EWS_Max			UMETA(DisplayName = "DefaultMAX")		// How many enum constants are in EWeaponState
 };
 
+class UTexture2D;
+
 UCLASS()
 class BLASTER_API AWeapon : public AActor
 {
@@ -75,6 +77,21 @@ protected:
 	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 public:
+
+	/*
+	* Textures for the weapon crosshairs
+	*/
+
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+	UTexture2D* CrosshairsCenter;
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+	UTexture2D* CrosshairsLeft;
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+	UTexture2D* CrosshairsRight;
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+	UTexture2D* CrosshairsTop;
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+	UTexture2D* CrosshairsBottom;
 
 	void ShowPickupWidget(bool bShowWidget);
 

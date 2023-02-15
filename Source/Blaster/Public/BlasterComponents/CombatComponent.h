@@ -10,6 +10,8 @@
 
 class AWeapon;
 class ABlasterCharacter;
+class ABlasterPlayerController;
+class ABlasterHUD;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BLASTER_API UCombatComponent : public UActorComponent
@@ -38,6 +40,8 @@ public:
 private:
 
 	ABlasterCharacter* Character;
+	ABlasterPlayerController* Controller;
+	ABlasterHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
@@ -51,6 +55,12 @@ private:
 	float AimWalkSpeed;
 
 	bool bFireButtonPressed;
+
+	/*  HUD anmd crosshairs  */
+
+	float CrosshairVelocityFactor;
+	float CrosshairInAirFactor;
+
 
 protected:
 
@@ -70,6 +80,8 @@ protected:
 	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);		// Replicate from server to every client and server. Called from server
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+
+	void SetHUDCrosshairs(float DeltaTime);
 
 public:
 
