@@ -116,6 +116,7 @@ public:
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 	AWeapon* GetEquippedWeapon();
+	FVector GetHitTarget() const;
 
 	/* Setters */
 	void SetOverlappingWeapon(AWeapon* NewOverlappingWeapon);

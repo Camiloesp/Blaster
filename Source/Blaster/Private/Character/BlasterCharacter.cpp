@@ -342,6 +342,12 @@ AWeapon* ABlasterCharacter::GetEquippedWeapon()
 	return Combat ? Combat->EquippedWeapon : nullptr;
 }
 
+FVector ABlasterCharacter::GetHitTarget() const
+{
+	if (!Combat) return FVector();
+	return Combat->HitTarget;
+}
+
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* NewOverlappingWeapon)
 {
 	if (IsLocallyControlled())
