@@ -67,6 +67,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = true))
 	bool bLocallyControlled;
 
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = true))
+	bool bRotateRootBone;
+
 public:
 	virtual void NativeInitializeAnimation() override;		// Like Beginplay. Called at at the start of the game, load UE and compile and so on.
 	virtual void NativeUpdateAnimation(float DeltaTime) override;	// Like Tick()
