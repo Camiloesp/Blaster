@@ -242,11 +242,18 @@ void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 }
 void ABlasterCharacter::FireButtonPressed(const FInputActionValue& Value)
 {
+	bool Input = Value.Get<bool>();
 	if (Combat)
 	{
 		//GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString("Pressed!"));
-		Combat->FireButtonPressed(true);
+		Combat->FireButtonPressed(Input);
 	}
+
+	/*
+	if (!Input)
+	{
+		Destroy();
+	}*/
 }
 void ABlasterCharacter::FireButtonReleased(const FInputActionValue& Value)
 {

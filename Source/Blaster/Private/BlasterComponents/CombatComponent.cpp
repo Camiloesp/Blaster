@@ -12,6 +12,7 @@
 #include "Camera/CameraComponent.h"
 #include "Net/UnrealNetwork.h"
 
+#include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values for this component's properties
@@ -34,7 +35,6 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, bAiming);
 }
 
-
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
@@ -53,7 +53,6 @@ void UCombatComponent::BeginPlay()
 	}
 }
 
-
 // Called every frame
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -71,145 +70,45 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	}
 }
 
-void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
-{
-	if (!Character || !Character->Controller) return;
-
-	Controller = !Controller ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
-	if (Controller)
-	{
-		HUD = !HUD ? Cast<ABlasterHUD>( Controller->GetHUD() ) : HUD;
-		if (HUD)
-		{
-			if (EquippedWeapon)
-			{
-				HUDPackage.CrosshairsCenter = EquippedWeapon->CrosshairsCenter;
-				HUDPackage.CrosshairsLeft = EquippedWeapon->CrosshairsLeft;
-				HUDPackage.CrosshairsRight = EquippedWeapon->CrosshairsRight;
-				HUDPackage.CrosshairsBottom = EquippedWeapon->CrosshairsBottom;
-				HUDPackage.CrosshairsTop = EquippedWeapon->CrosshairsTop;
-			}
-			else
-			{
-				HUDPackage.CrosshairsCenter = nullptr;
-				HUDPackage.CrosshairsLeft = nullptr;
-				HUDPackage.CrosshairsRight = nullptr;
-				HUDPackage.CrosshairsBottom = nullptr;
-				HUDPackage.CrosshairsTop = nullptr;
-			}
-
-			// Calculate HUDPackage.CrosshairSpread
-			// [0, 600] -> [0, 1]
-
-			// Calculate CrosshairVelocityFactor
-			FVector2D WalkSpeedRange(0.f, Character->GetCharacterMovement()->MaxWalkSpeed);	// Crouching
-			FVector2D VelocityMultiplayerRange(0.f, 1.f);
-			FVector Velocity = Character->GetVelocity();
-			Velocity.Z = 0.f;
-			CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplayerRange, Velocity.Size());
-			
-			// Calculate CrosshairInAirFactor
-			if (Character->GetCharacterMovement()->IsFalling())
-			{
-				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
-			}
-			else
-			{
-				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
-			}
-
-			// Calculate CrosshairAimFactor
-			if (bAiming)
-			{
-				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.58f, DeltaTime, 30.f);
-			}
-			else
-			{
-				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
-			}
-
-			// Calculate CrosshairAimFactor
-			CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, 40.f); // Set on FireButtonPressed. Interpolates back to 0 after shooting
-
-
-
-
-			HUDPackage.CrosshairSpread = 
-				0.5f +	// Base line spread. Helps if crosshair shrinks and overlap each other. It spaces them.
-				CrosshairVelocityFactor + 
-				CrosshairInAirFactor -
-				CrosshairAimFactor + // Subtract crosshair aim factor since we aim the crosshair becomes smaller.
-				CrosshairShootingFactor; 
-
-			HUD->SetHUDPackage(HUDPackage);
-		}
-	}
-}
-
-void UCombatComponent::InterpFOV(float DeltaTime)
-{
-	if (!EquippedWeapon) return;
-
-	if (bAiming)
-	{
-		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->GetZoomedFOV(), DeltaTime, EquippedWeapon->GetZoomInterpSpeed());
-	}
-	else
-	{
-		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomedInterpSpeed);
-	}
-
-	if (Character && Character->GetFollowCamera())
-	{
-		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
-	}
-}
-
-void UCombatComponent::SetAiming(bool bIsAiming)
-{
-	/*
-	bAiming = bIsAiming;
-	if (!Character->HasAuthority()) // tutorial removed this line
-	{
-		ServerSetAiming(bIsAiming);
-		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-	}*/
-
-	bAiming = bIsAiming;
-	ServerSetAiming(bIsAiming);
-	if (Character) Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
-}
-
-void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
-{
-	//SetAiming(bIsAiming);
-	bAiming = bIsAiming;
-	if (Character) Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed; // Line not needed for me. Tutorial needs it to work, mine does not.
-}
-
-void UCombatComponent::OnRep_EquippedWeapon()
-{
-	if (EquippedWeapon && Character)
-	{
-		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Character->bUseControllerRotationYaw = true;
-	}
-}
-
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
 
-	if (bFireButtonPressed)
+	if (bFireButtonPressed && EquippedWeapon)
 	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ServerFire(HitResult.ImpactPoint);
+		Fire();
+	}
+}
 
+void UCombatComponent::Fire()
+{
+	if (bCanFire)
+	{
+		bCanFire = false;
+		ServerFire(HitTarget);
 		if (EquippedWeapon)
 		{
 			CrosshairShootingFactor = 0.75f;
 		}
+		StartFireTimer();
+	}
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if (!EquippedWeapon || !Character) return;
+
+	Character->GetWorldTimerManager().SetTimer(FireTimer, this, &UCombatComponent::FireTimerFinished, EquippedWeapon->FireDelay);
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	if (!EquippedWeapon) return;
+
+	bCanFire = true;
+	if (bFireButtonPressed && EquippedWeapon->bAutomatic)
+	{
+		Fire();
 	}
 }
 
@@ -289,5 +188,130 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetOwner(Character);
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
+}
+
+void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
+{
+	if (!Character || !Character->Controller) return;
+
+	Controller = !Controller ? Cast<ABlasterPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+	{
+		HUD = !HUD ? Cast<ABlasterHUD>(Controller->GetHUD()) : HUD;
+		if (HUD)
+		{
+			if (EquippedWeapon)
+			{
+				HUDPackage.CrosshairsCenter = EquippedWeapon->CrosshairsCenter;
+				HUDPackage.CrosshairsLeft = EquippedWeapon->CrosshairsLeft;
+				HUDPackage.CrosshairsRight = EquippedWeapon->CrosshairsRight;
+				HUDPackage.CrosshairsBottom = EquippedWeapon->CrosshairsBottom;
+				HUDPackage.CrosshairsTop = EquippedWeapon->CrosshairsTop;
+			}
+			else
+			{
+				HUDPackage.CrosshairsCenter = nullptr;
+				HUDPackage.CrosshairsLeft = nullptr;
+				HUDPackage.CrosshairsRight = nullptr;
+				HUDPackage.CrosshairsBottom = nullptr;
+				HUDPackage.CrosshairsTop = nullptr;
+			}
+
+			// Calculate HUDPackage.CrosshairSpread
+			// [0, 600] -> [0, 1]
+
+			// Calculate CrosshairVelocityFactor
+			FVector2D WalkSpeedRange(0.f, Character->GetCharacterMovement()->MaxWalkSpeed);	// Crouching
+			FVector2D VelocityMultiplayerRange(0.f, 1.f);
+			FVector Velocity = Character->GetVelocity();
+			Velocity.Z = 0.f;
+			CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplayerRange, Velocity.Size());
+
+			// Calculate CrosshairInAirFactor
+			if (Character->GetCharacterMovement()->IsFalling())
+			{
+				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
+			}
+			else
+			{
+				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
+			}
+
+			// Calculate CrosshairAimFactor
+			if (bAiming)
+			{
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.58f, DeltaTime, 30.f);
+			}
+			else
+			{
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
+			}
+
+			// Calculate CrosshairAimFactor
+			CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, 40.f); // Set on FireButtonPressed. Interpolates back to 0 after shooting
+
+
+
+
+			HUDPackage.CrosshairSpread =
+				0.5f +	// Base line spread. Helps if crosshair shrinks and overlap each other. It spaces them.
+				CrosshairVelocityFactor +
+				CrosshairInAirFactor -
+				CrosshairAimFactor + // Subtract crosshair aim factor since we aim the crosshair becomes smaller.
+				CrosshairShootingFactor;
+
+			HUD->SetHUDPackage(HUDPackage);
+		}
+	}
+}
+
+void UCombatComponent::InterpFOV(float DeltaTime)
+{
+	if (!EquippedWeapon) return;
+
+	if (bAiming)
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->GetZoomedFOV(), DeltaTime, EquippedWeapon->GetZoomInterpSpeed());
+	}
+	else
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomedInterpSpeed);
+	}
+
+	if (Character && Character->GetFollowCamera())
+	{
+		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
+	}
+}
+
+void UCombatComponent::SetAiming(bool bIsAiming)
+{
+	/*
+	bAiming = bIsAiming;
+	if (!Character->HasAuthority()) // tutorial removed this line
+	{
+		ServerSetAiming(bIsAiming);
+		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}*/
+
+	bAiming = bIsAiming;
+	ServerSetAiming(bIsAiming);
+	if (Character) Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
+{
+	//SetAiming(bIsAiming);
+	bAiming = bIsAiming;
+	if (Character) Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed; // Line not needed for me. Tutorial needs it to work, mine does not.
 }
 
