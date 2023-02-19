@@ -5,9 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActions/BlasterInputConfigData.h"
-//#include "InputActionValue.h"
 #include "BlasterTypes/TurningInPlace.h"
 #include "Interfaces/InteractWithCrosshairsInterface.h"
+#include "Components/TimelineComponent.h"
+
 #include "BlasterCharacter.generated.h"
 
 class USpringArmComponent;
@@ -15,9 +16,11 @@ class UCameraComponent;
 class UWidgetComponent;
 class UInputMappingContext;
 class UAnimMontage;
+class USoundCue;
 
 class AWeapon;
 class UCombatComponent;
+class ABlasterPlayerController;
 
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
@@ -41,6 +44,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;	// This function we will have access to components. The CombatComponent will be constructed by this time
 	virtual void OnRep_ReplicatedMovement() override;  
+	virtual void Destroyed() override;
 
 					/* ABlasterCharacter */
 
@@ -80,6 +84,8 @@ private:
 	UAnimMontage* FireWeaponMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* HitReactMontage;
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* EliminatedMontage;
 
 	void HideCameraIfCharacterClose();
 	UPROPERTY(EditAnywhere)
@@ -92,6 +98,54 @@ private:
 	float ProxyYaw;
 	float TimeSinceLastMovementReplication;
 	float CalculateSpeed();
+
+
+	/*
+	* Player health
+	*/
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	float MaxHealth = 100.f;
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	float Health = 100.f;
+	UFUNCTION()
+	void OnRep_Health();
+	ABlasterPlayerController* BlasterPlayerController;
+	bool bEliminated = false;
+
+	FTimerHandle EliminatedTimer;
+	UPROPERTY(EditDefaultsOnly)
+	float EliminationDelay = 3.f;
+	void EliminatedTimerFinished();
+
+	/*
+	* Dissolve effect
+	*/
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* DissolveTimeline;
+	FOnTimelineFloat DissolveTrack;
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* DissolveCurve;
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+	void StartDissolve();
+
+	// Dynamic instance that we can change at runtime
+	UPROPERTY(VisibleAnywhere, Category = Elimination)
+	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
+	// Material instance set on the blueprint, used with the dynamic material instance.
+	UPROPERTY(EditAnywhere, Category = Elimination)
+	UMaterialInstance* DissolveMaterialInstance;
+
+	/*
+	* Elimination Bot
+	*/
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* EliminationBotEffect;
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* EliminationBotComponent;
+	UPROPERTY(EditAnywhere)
+	USoundCue* EliminationBotSound;
 
 protected:
 
@@ -122,12 +176,19 @@ protected:
 
 	void PlayHitReactMontage();
 
-public:
+	// Fundtion signature from OnTakeAnyDamage from aactor.
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+	void UpdateHUDHealth();
 
+public:
+	void Eliminated();
+	// Handles player elimination.
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEliminated();
 
 	void PlayFireMontage(bool bAiming);
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastHit();
+	void PlayEliminatedMontage();
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
@@ -138,6 +199,7 @@ public:
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+	FORCEINLINE bool IsEliminated() const { return bEliminated; }
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
 
