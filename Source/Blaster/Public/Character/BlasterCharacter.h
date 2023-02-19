@@ -18,6 +18,7 @@ class UInputMappingContext;
 class UAnimMontage;
 class USoundCue;
 
+class ABlasterPlayerState;
 class AWeapon;
 class UCombatComponent;
 class ABlasterPlayerController;
@@ -147,6 +148,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	USoundCue* EliminationBotSound;
 
+	UPROPERTY()
+	ABlasterPlayerState* BlasterPlayerState;
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -180,6 +184,9 @@ protected:
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 	void UpdateHUDHealth();
+
+	// Poll for any relevant classes and initialize our hud
+	void PollInit();
 
 public:
 	void Eliminated();
