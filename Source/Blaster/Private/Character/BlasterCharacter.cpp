@@ -389,7 +389,7 @@ void ABlasterCharacter::SimProxiesTurn()
 	ProxyRotation = GetActorRotation();
 	ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
 
-	GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString::Printf(TEXT("ProxyYaw %f"), ProxyYaw));
+	//GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString::Printf(TEXT("ProxyYaw %f"), ProxyYaw));
 
 	if (FMath::Abs(ProxyYaw) > TurnThreshold)
 	{
