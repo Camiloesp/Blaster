@@ -26,6 +26,7 @@
 #include "PlayerController/BlasterPlayerController.h"
 #include "GameModes/BlasterGameMode.h"
 #include "PlayerState/BlasterPlayerState.h"
+#include "Weapon/WeaponTypes.h"
 
 
 // Sets default values
@@ -148,6 +149,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		EnhancedInputComponent->BindAction(InputConfigData->FireAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::FireButtonPressed);
 		//EnhancedInputComponent->BindAction(InputConfigData->FireAction, ETriggerEvent::Completed, this, &ABlasterCharacter::FireButtonReleased);
+
+		EnhancedInputComponent->BindAction(InputConfigData->ReloadAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::ReloadButtonPressed);
 	}
 }
 
@@ -261,7 +264,15 @@ void ABlasterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
 	{
 		Crouch();
 	}
-} 
+}
+void ABlasterCharacter::ReloadButtonPressed(const FInputActionValue& Value)
+{
+	if (Combat)
+	{
+		Combat->Reload();
+	}
+}
+
 
 void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 {
@@ -471,6 +482,25 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	}
 }
 
+void ABlasterCharacter::PlayReloadMontage()
+{
+	if (!Combat || !Combat->EquippedWeapon) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+		switch (Combat->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		}
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
 void ABlasterCharacter::PlayEliminatedMontage()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -555,6 +585,10 @@ void ABlasterCharacter::Eliminated()
 
 void ABlasterCharacter::MulticastEliminated_Implementation()
 {
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDWeaponAmmo(0);
+	}
 	bEliminated = true;
 	PlayEliminatedMontage();
 
@@ -642,6 +676,12 @@ FVector ABlasterCharacter::GetHitTarget() const
 {
 	if (!Combat) return FVector();
 	return Combat->HitTarget;
+}
+
+ECombatState ABlasterCharacter::GetCombatState() const
+{
+	if (!Combat) return ECombatState::ECS_MAX;
+	return Combat->CombatState;
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* NewOverlappingWeapon)

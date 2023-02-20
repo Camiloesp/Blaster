@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Weapon/Weapon.h"
+#include "BlasterTypes/CombatState.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
@@ -92,4 +93,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget() + MuzzleX * 1'000.f, FColor::Orange);
 		*/
 	}
+
+	bUseFABRIK = (BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading);
+	bUseAimOffsets = (BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading);
+	bTransformRightHand = (BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading);
 }
