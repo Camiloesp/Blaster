@@ -185,6 +185,7 @@ void ABlasterCharacter::Destroyed()
 
 void ABlasterCharacter::Move(const FInputActionValue& Value)
 {
+	// lecture 126 not moving problem for server-client
 	if (Controller != nullptr)
 	{
 		const FVector2D MoveValue = Value.Get<FVector2D>();
