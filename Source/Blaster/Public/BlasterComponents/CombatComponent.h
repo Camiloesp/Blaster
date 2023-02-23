@@ -125,8 +125,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
-
-	void FireButtonPressed(bool bPressed);
+public:
+	void FireButtonPressed(bool bPressed); // moved to public so we can call it from controller
+protected:
 
 	void Fire();
 

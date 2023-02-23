@@ -35,10 +35,13 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void Jump() override;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void SetupInputMappingContext();
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -156,6 +159,9 @@ private:
 	UPROPERTY()
 	ABlasterPlayerState* BlasterPlayerState;
 
+	/* Fix this bInputsSet ? */
+	bool bInputsSet = false;
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -193,7 +199,7 @@ protected:
 
 	// Poll for any relevant classes and initialize our hud
 	void PollInit();
-
+	void RotateInPlace(float DeltaTime);
 public:
 	void Eliminated();
 	// Handles player elimination.
@@ -207,6 +213,9 @@ public:
 	bool IsWeaponEquipped();
 	bool IsAiming();
 
+	UPROPERTY(Replicated)
+	bool bDisableGameplay = false;
+
 	/* Getters */
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
@@ -216,6 +225,8 @@ public:
 	FORCEINLINE bool IsEliminated() const { return bEliminated; }
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
+	FORCEINLINE bool GetDisabledGameplay() const { return bDisableGameplay; }
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
 	ECombatState GetCombatState() const;

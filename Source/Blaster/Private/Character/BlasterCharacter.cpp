@@ -77,7 +77,8 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
-	DOREPLIFETIME(ABlasterCharacter, Health);
+	DOREPLIFETIME(ABlasterCharacter, Health); 
+	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
 
 // Called when the game starts or when spawned
@@ -95,19 +96,45 @@ void ABlasterCharacter::BeginPlay()
 	}
 
 	// Enhancedinput setup
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(BlasterMappingContext, 0);
-		}
-	}
+	SetupInputMappingContext();
 }
 
 // Called every frame
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Server client does not move. the below code fixes it.
+	if (!bInputsSet && HasAuthority() && Controller)
+	{
+		SetupInputMappingContext();
+	}
+	
+	RotateInPlace(DeltaTime);
+	HideCameraIfCharacterClose();
+	PollInit();
+}
+
+void ABlasterCharacter::SetupInputMappingContext()
+{
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(BlasterMappingContext, 0);
+			bInputsSet = true;
+		}
+	}
+}
+
+void ABlasterCharacter::RotateInPlace(float DeltaTime)
+{
+	if (bDisableGameplay)
+	{
+		bUseControllerRotationYaw = false;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
 
 	// Not doing AimOffset if we are a simulatedProxy
 	if (GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
@@ -123,9 +150,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 		}
 		CalculateAO_Pitch();
 	}
-
-	HideCameraIfCharacterClose();
-	PollInit();
 }
 
 // Called to bind functionality to input
@@ -138,7 +162,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(InputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::Move);
 		EnhancedInputComponent->BindAction(InputConfigData->LookAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::Look);
 
-		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::Jump);
 		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::EquipButtonPressed);
@@ -152,6 +176,13 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		EnhancedInputComponent->BindAction(InputConfigData->ReloadAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::ReloadButtonPressed);
 	}
+}
+
+void ABlasterCharacter::Jump()
+{
+	if (bDisableGameplay) return;
+
+	Super::Jump();
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -181,10 +212,19 @@ void ABlasterCharacter::Destroyed()
 	{
 		EliminationBotComponent->DestroyComponent();
 	}
+
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	bool bMatchNotInProgress = BlasterGameMode && BlasterGameMode->GetMatchState() != MatchState::InProgress;
+	if (Combat && Combat->EquippedWeapon && bMatchNotInProgress)
+	{
+		Combat->EquippedWeapon->Destroy();
+	}
 }
 
 void ABlasterCharacter::Move(const FInputActionValue& Value)
 {
+	if (bDisableGameplay) return; // disable movement when dead.
+
 	// lecture 126 not moving problem for server-client
 	if (Controller != nullptr)
 	{
@@ -231,6 +271,8 @@ void ABlasterCharacter::Look(const FInputActionValue& Value)
 
 void ABlasterCharacter::EquipButtonPressed(const FInputActionValue& Value)
 {
+	if (bDisableGameplay) return; // disable action when dead.
+
 	// Equip weapon on server.
 	if (Combat)
 	{
@@ -257,6 +299,8 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation(const FInputActi
 
 void ABlasterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
 {
+	if (bDisableGameplay) return; // disable action when dead.
+
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -268,6 +312,8 @@ void ABlasterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
 }
 void ABlasterCharacter::ReloadButtonPressed(const FInputActionValue& Value)
 {
+	if (bDisableGameplay) return; // disable action when dead.
+
 	if (Combat)
 	{
 		Combat->Reload();
@@ -277,6 +323,8 @@ void ABlasterCharacter::ReloadButtonPressed(const FInputActionValue& Value)
 
 void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 {
+	if (bDisableGameplay) return; // disable action when dead.
+
 	if (Combat)
 	{
 		//Combat->bAiming = !Combat->bAiming;
@@ -285,41 +333,25 @@ void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 }
 void ABlasterCharacter::FireButtonPressed(const FInputActionValue& Value)
 {
+	if (bDisableGameplay) return; // disable action when dead.
+
 	bool Input = Value.Get<bool>();
 	if (Combat)
 	{
 		//GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString("Pressed!"));
 		Combat->FireButtonPressed(Input);
 	}
-
-	/*
-	if (!Input)
-	{
-		Destroy();
-	}*/
 }
 void ABlasterCharacter::FireButtonReleased(const FInputActionValue& Value)
 {
+	if (bDisableGameplay) return; // disable action when dead.
+
 	if (Combat)
 	{
 		//GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString("Released!"));
 		Combat->FireButtonPressed(false);
 	}
 }
-/* Using ACharacter::Jump instead
-void ABlasterCharacter::Jump()
-{
-	if (bIsCrouched)
-	{
-		UnCrouch();
-	}
-	else
-	{
-		Super::Jump();
-	}
-	
-}
-*/
 
 float ABlasterCharacter::CalculateSpeed()
 {
@@ -607,9 +639,10 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	// Disable character movement
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	if (BlasterPlayerController)
+	bDisableGameplay = true;
+	if (Combat)
 	{
-		DisableInput(BlasterPlayerController);
+		Combat->FireButtonPressed(false);
 	}
 
 	// Disable collision
