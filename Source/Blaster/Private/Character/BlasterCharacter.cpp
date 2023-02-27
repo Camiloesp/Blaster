@@ -529,6 +529,15 @@ void ABlasterCharacter::PlayReloadMontage()
 		case EWeaponType::EWT_AssaultRifle:
 			SectionName = FName("Rifle");
 			break;
+		case EWeaponType::EWT_RocketLauncher:
+			SectionName = FName("Rifle");	// Set to rifle to avoid warnings. No rocket reloading animation yet.
+			break;
+		case EWeaponType::EWT_Pistol:
+			SectionName = FName("Rifle");	// Set to rifle to avoid warnings. No rocket reloading animation yet.
+			break;
+		case EWeaponType::EWT_SubmachineGun:
+			SectionName = FName("Rifle");	// Set to rifle to avoid warnings. No rocket reloading animation yet.
+			break;
 		}
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
@@ -638,7 +647,7 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 
 	// Disable character movement
 	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();
+	//GetCharacterMovement()->StopMovementImmediately();
 	bDisableGameplay = true;
 	if (Combat)
 	{

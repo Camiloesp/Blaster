@@ -361,7 +361,7 @@ void ABlasterPlayerController::HandleMatchHasStarted()
 	BlasterHUD = BlasterHUD ? BlasterHUD : Cast<ABlasterHUD>(GetHUD());
 	if (BlasterHUD)
 	{
-		BlasterHUD->AddCharacterOverlay();
+		BlasterHUD->AddCharacterOverlay(); // If being added twice, add check : if(!BlasterHUD->CharacterOverlay)
 		if (BlasterHUD->Announcement)
 		{
 			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
