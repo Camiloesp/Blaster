@@ -151,6 +151,12 @@ public:
 
 	void SetHUDAmmo();
 
+	/*
+	* Enable/Disable custom depth. (Outline color for weapons)
+	*/
+	void EnableCustomDepth(bool bEnable);
+
+
 	/* getters */
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
@@ -160,6 +166,7 @@ public:
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	bool IsEmpty();
+	bool IsFull();
 
 	/* setters */
 	void SetWeaponState(EWeaponState NewWeaponState);

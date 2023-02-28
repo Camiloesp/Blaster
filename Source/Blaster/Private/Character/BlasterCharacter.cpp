@@ -530,13 +530,22 @@ void ABlasterCharacter::PlayReloadMontage()
 			SectionName = FName("Rifle");
 			break;
 		case EWeaponType::EWT_RocketLauncher:
-			SectionName = FName("Rifle");	// Set to rifle to avoid warnings. No rocket reloading animation yet.
+			SectionName = FName("RocketLauncher");
 			break;
 		case EWeaponType::EWT_Pistol:
-			SectionName = FName("Rifle");	// Set to rifle to avoid warnings. No rocket reloading animation yet.
+			SectionName = FName("Pistol");
 			break;
 		case EWeaponType::EWT_SubmachineGun:
-			SectionName = FName("Rifle");	// Set to rifle to avoid warnings. No rocket reloading animation yet.
+			SectionName = FName("Pistol"); // Pistol because its similar and no anim asset.
+			break;
+		case EWeaponType::EWT_Shotgun:
+			SectionName = FName("Shotgun");
+			break;
+		case EWeaponType::EWT_SniperRifle:
+			SectionName = FName("SniperRifle");
+			break;
+		case EWeaponType::EWT_GrenadeLauncher:
+			SectionName = FName("GrenadeLauncher");
 			break;
 		}
 		AnimInstance->Montage_JumpToSection(SectionName);
@@ -667,6 +676,16 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	if (EliminationBotSound)
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, EliminationBotSound, GetActorLocation());
+	}
+
+	bool bHideSniperScope = IsLocallyControlled() && 
+		Combat && 
+		Combat->bAiming && 
+		Combat->EquippedWeapon && 
+		Combat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+	if (bHideSniperScope)
+	{
+		ShowSniperScopeWidget(false);
 	}
 }
 

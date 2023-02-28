@@ -9,8 +9,6 @@
 #include "BlasterTypes/CombatState.h"
 #include "CombatComponent.generated.h"
 
-#define TRACE_LENGTH 80'000.f
-
 class AWeapon;
 class ABlasterCharacter;
 class ABlasterPlayerController;
@@ -113,6 +111,12 @@ private:
 	int32 StartingPistolAmmo = 0;
 	UPROPERTY(EditAnywhere)
 	int32 StartingSMGAmmo = 0;
+	UPROPERTY(EditAnywhere)
+	int32 StartingShotgunAmmo = 0;
+	UPROPERTY(EditAnywhere)
+	int32 StartingSniperAmmo = 0;
+	UPROPERTY(EditAnywhere)
+	int32 StartingGrenadeLauncherAmmo = 0;
 
 	void InitializeCarriedAmmo();
 
@@ -122,6 +126,7 @@ private:
 	void OnRep_CombatState();
 
 	void UpdateAmmoValues();
+	void UpdateShotgunAmmoValues();
 
 protected:
 
@@ -162,4 +167,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+
+	UFUNCTION(BlueprintCallable)
+	void ShotgunShellReload();
+
+	void JumpToShotgunEnd();
 };
