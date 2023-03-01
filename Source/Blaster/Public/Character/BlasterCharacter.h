@@ -95,6 +95,9 @@ private:
 	UAnimMontage* HitReactMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* EliminatedMontage;
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* ThrowGrenadeMontage;
+
 
 	void HideCameraIfCharacterClose();
 	UPROPERTY(EditAnywhere)
@@ -162,6 +165,13 @@ private:
 	/* Fix this bInputsSet ? */
 	bool bInputsSet = false;
 
+	/*
+	* Grenade
+	*/
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* AttachedGrenade;
+
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -180,6 +190,7 @@ protected:
 	void AimButtonPressed(const FInputActionValue& Value);
 	void FireButtonPressed(const FInputActionValue& Value);
 	void FireButtonReleased(const FInputActionValue& Value);
+	void GrenadeButtonPressed(const FInputActionValue& Value);
 	//virtual void Jump() override;
 
 	// RPC from client to server
@@ -209,6 +220,7 @@ public:
 	void PlayFireMontage(bool bAiming);
 	void PlayReloadMontage();
 	void PlayEliminatedMontage();
+	void PlayThrowGrenadeMontage();
 
 	bool IsWeaponEquipped();
 	bool IsAiming();

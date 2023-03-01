@@ -66,8 +66,11 @@ ABlasterCharacter::ABlasterCharacter()
 
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
 
-	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+	AttachedGrenade = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Attached Grenade"));
+	AttachedGrenade->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
+	AttachedGrenade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 }
@@ -172,9 +175,10 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		EnhancedInputComponent->BindAction(InputConfigData->AimAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::AimButtonPressed); // Input action with 2 triggers: Pressed and then Released.
 
 		EnhancedInputComponent->BindAction(InputConfigData->FireAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::FireButtonPressed);
-		//EnhancedInputComponent->BindAction(InputConfigData->FireAction, ETriggerEvent::Completed, this, &ABlasterCharacter::FireButtonReleased);
 
 		EnhancedInputComponent->BindAction(InputConfigData->ReloadAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::ReloadButtonPressed);
+
+		EnhancedInputComponent->BindAction(InputConfigData->ThrowGrenade, ETriggerEvent::Triggered, this, &ABlasterCharacter::GrenadeButtonPressed);
 	}
 }
 
@@ -350,6 +354,14 @@ void ABlasterCharacter::FireButtonReleased(const FInputActionValue& Value)
 	{
 		//GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString("Released!"));
 		Combat->FireButtonPressed(false);
+	}
+}
+
+void ABlasterCharacter::GrenadeButtonPressed(const FInputActionValue& Value)
+{
+	if (Combat )
+	{
+		Combat->ThrowGrenade();
 	}
 }
 
@@ -558,6 +570,15 @@ void ABlasterCharacter::PlayEliminatedMontage()
 	if (AnimInstance && EliminatedMontage)
 	{
 		AnimInstance->Montage_Play(EliminatedMontage);
+	}
+}
+
+void ABlasterCharacter::PlayThrowGrenadeMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ThrowGrenadeMontage)
+	{
+		AnimInstance->Montage_Play(ThrowGrenadeMontage);
 	}
 }
 
