@@ -21,6 +21,7 @@ class USoundCue;
 class ABlasterPlayerState;
 class AWeapon;
 class UCombatComponent;
+class UBuffComponent;
 class ABlasterPlayerController;
 
 UCLASS()
@@ -68,6 +69,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	UCombatComponent* Combat;
+
+	UPROPERTY( VisibleAnywhere)
+	UBuffComponent* Buff;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* OverlappingWeapon;
@@ -120,7 +124,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
 	float Health = 100.f;
 	UFUNCTION()
-	void OnRep_Health();
+	void OnRep_Health(float LastHealth);
 	ABlasterPlayerController* BlasterPlayerController;
 	bool bEliminated = false;
 
@@ -206,12 +210,13 @@ protected:
 	// Fundtion signature from OnTakeAnyDamage from aactor.
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
-	void UpdateHUDHealth();
 
 	// Poll for any relevant classes and initialize our hud
 	void PollInit();
 	void RotateInPlace(float DeltaTime);
 public:
+
+	void UpdateHUDHealth();
 	void Eliminated();
 	// Handles player elimination.
 	UFUNCTION(NetMulticast, Reliable)
@@ -240,12 +245,17 @@ public:
 	FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
 	FORCEINLINE bool GetDisabledGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
+	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
+	FORCEINLINE UBuffComponent* GetBuff() const { return Buff; }
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
 	ECombatState GetCombatState() const;
 
 	/* Setters */
+	FORCEINLINE void SetHealth( float Amount ) { Health = Amount; }
 	void SetOverlappingWeapon(AWeapon* NewOverlappingWeapon);
+
+
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);

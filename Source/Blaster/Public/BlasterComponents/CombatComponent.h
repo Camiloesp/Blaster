@@ -13,6 +13,7 @@ class AWeapon;
 class ABlasterCharacter;
 class ABlasterPlayerController;
 class ABlasterHUD;
+class AProjectile;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BLASTER_API UCombatComponent : public UActorComponent
@@ -101,6 +102,9 @@ private:
 	void OnRep_CarriedAmmo();
 
 	TMap<EWeaponType, int32> CarriedAmmoMap;
+	// Max ammo amount for all weapon
+	UPROPERTY( EditAnywhere )
+	int32 MaxCarriedAmmo = 500;
 
 	// Maybe leave this to weapon class and not player?
 	UPROPERTY(EditAnywhere)
@@ -127,6 +131,15 @@ private:
 
 	void UpdateAmmoValues();
 	void UpdateShotgunAmmoValues();
+
+	/* Grenades */
+	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
+	int32 Grenades = 4;
+	UFUNCTION()
+	void OnRep_Grenades();
+	UPROPERTY(EditAnywhere)
+	int32 MaxGrenades = 4;
+	void UpdateHUDGrenades();
 
 protected:
 
@@ -163,12 +176,16 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerThrowGrenade();
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AProjectile> GrenadeClass;
+
 	void DropEquippedWeapon();
 	void AttachActorToRightHand(AActor* ActorToAttach);
 	void AttachActorToLeftHand(AActor* ActorToAttach);
 	void UpdateCarriedAmmo();
 	void PlayEquipWeaponSound();
 	void ReloadEmptyWeapon();
+	void ShowAttachedGrenade(bool bShowGrenade);
 
 public:
 
@@ -186,4 +203,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ThrowGrenadeFinished();
+	UFUNCTION(BlueprintCallable)
+	void LaunchGrenade();
+
+	UFUNCTION(Server, Reliable)
+	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
+
+	void PickupAmmo( EWeaponType WeaponType, int32 AmmoAmount );
+	
+	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 };

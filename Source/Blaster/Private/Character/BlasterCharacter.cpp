@@ -21,6 +21,7 @@
 #include "InputActions/BlasterInputConfigData.h" // list of inputs
 #include "Weapon/Weapon.h"
 #include "BlasterComponents/CombatComponent.h"
+#include "BlasterComponents/BuffComponent.h"
 #include "Character/BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
 #include "PlayerController/BlasterPlayerController.h"
@@ -57,6 +58,9 @@ ABlasterCharacter::ABlasterCharacter()
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
+
+	Buff = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
+	Buff->SetIsReplicated(true);
 
 	// Stop colliding with other players cameras
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
@@ -100,6 +104,11 @@ void ABlasterCharacter::BeginPlay()
 
 	// Enhancedinput setup
 	SetupInputMappingContext();
+
+	if (AttachedGrenade)
+	{
+		AttachedGrenade->SetVisibility(false);
+	}
 }
 
 // Called every frame
@@ -196,6 +205,11 @@ void ABlasterCharacter::PostInitializeComponents()
 	if (Combat)
 	{
 		Combat->Character = this;
+	}
+
+	if (Buff)
+	{
+		Buff->Character = this;
 	}
 }
 
@@ -372,11 +386,11 @@ float ABlasterCharacter::CalculateSpeed()
 	return Velocity.Size();
 }
 
-void ABlasterCharacter::OnRep_Health()
+void ABlasterCharacter::OnRep_Health( float LastHealth )
 {
 	// instead refactor this with ReceiveDamage ? 
 	UpdateHUDHealth();
-	PlayHitReactMontage();
+	if (Health < LastHealth) PlayHitReactMontage();
 }
 
 void ABlasterCharacter::AimOffset(float DeltaTime)
@@ -598,6 +612,7 @@ void ABlasterCharacter::PlayHitReactMontage()
 
 void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
+	if (bEliminated) return;
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth); // Health is replicated.
 	UpdateHUDHealth();
 	PlayHitReactMontage();
