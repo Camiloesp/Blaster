@@ -4,19 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Pickups/Pickup.h"
-#include "HealthPickup.generated.h"
+#include "JumpPickup.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
-class BLASTER_API AHealthPickup : public APickup
+class BLASTER_API AJumpPickup : public APickup
 {
 	GENERATED_BODY()
-public:
-	AHealthPickup();
 
-	/* AHealthPickup */
+
+		/* AJumpPickup */
 public:
 protected:
 
@@ -24,10 +23,9 @@ protected:
 
 private:
 
-	UPROPERTY(EditAnywhere)
-	float HealAmount = 100.f;
-
 	UPROPERTY( EditAnywhere )
-	float HealingTime = 5.f;
-		
+	float JumpZVelocityBuff = 3000.f;
+	UPROPERTY( EditAnywhere )
+	float JumpBuffTime = 30.f;
+
 };

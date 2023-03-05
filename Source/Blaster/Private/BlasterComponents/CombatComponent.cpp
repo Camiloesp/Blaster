@@ -514,6 +514,14 @@ void UCombatComponent::PickupAmmo( EWeaponType WeaponType, int32 AmmoAmount )
 	}
 }
 
+void UCombatComponent::SetSpeeds( float NewBaseWalkSpeed, float NewCrouchSpeed )
+{
+	if (!Character || !Character->GetCharacterMovement()) return;
+
+	BaseWalkSpeed = NewBaseWalkSpeed;
+	Character->GetCharacterMovement()->MaxWalkSpeedCrouched = NewCrouchSpeed;
+}
+
 void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuantize& Target)
 {
 	if (Character && GrenadeClass && Character->GetAttachedGrenade())

@@ -3,6 +3,9 @@
 
 #include "BlasterComponents/BuffComponent.h"
 #include "Character/BlasterCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
+#include "BlasterComponents/CombatComponent.h"
 
 // Sets default values for this component's properties
 UBuffComponent::UBuffComponent()
@@ -22,6 +25,16 @@ void UBuffComponent::BeginPlay()
 
 }
 
+void UBuffComponent::SetInitialSpeeds( float BaseSpeed, float CrouchSpeed )
+{
+	InitialBaseSpeed = BaseSpeed;
+	InitialCrouchSpeed = CrouchSpeed;
+}
+
+void UBuffComponent::SetInitialJumpVelocity( float Velocity )
+{
+	InitialJumpVelocity = Velocity;
+}
 
 // Called every frame
 void UBuffComponent::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
@@ -54,3 +67,67 @@ void UBuffComponent::HealRampUp( float DeltaTime )
 	}
 }
 
+void UBuffComponent::BuffSpeed( float BuffBaseSpeed, float BuffCrouchSpeed, float BuffTime )
+{
+	if (!Character) return;
+
+	Character->GetWorldTimerManager().SetTimer( SpeedBuffTimer, this, &UBuffComponent::ResetSpeeds, BuffTime );
+
+	if (Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = BuffBaseSpeed;
+		Character->GetCharacterMovement()->MaxWalkSpeedCrouched = BuffCrouchSpeed;
+	}
+	MulticastSpeedBuff( BuffBaseSpeed, BuffCrouchSpeed );
+}
+
+void UBuffComponent::ResetSpeeds()
+{
+	if (!Character || !Character->GetCharacterMovement()) return;
+
+	Character->GetCharacterMovement()->MaxWalkSpeed = InitialBaseSpeed;
+	Character->GetCharacterMovement()->MaxWalkSpeedCrouched = InitialCrouchSpeed;
+
+	MulticastSpeedBuff( InitialBaseSpeed, InitialCrouchSpeed );
+}
+
+void UBuffComponent::MulticastSpeedBuff_Implementation( float BaseSpeed, float CrouchSpeed )
+{
+	if (!Character || !Character->GetCharacterMovement()) return;
+
+	Character->GetCharacterMovement()->MaxWalkSpeed = BaseSpeed;
+	Character->GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+
+	if (Character->GetCombat())
+	{
+		Character->GetCombat()->SetSpeeds( BaseSpeed, CrouchSpeed );
+	}
+}
+
+void UBuffComponent::BuffJump( float BuffJumpVelocity, float BuffTime )
+{
+	if (!Character) return;
+
+	Character->GetWorldTimerManager().SetTimer( JumpBuffTimer, this, &UBuffComponent::ResetJump, BuffTime );
+
+	if (Character->GetCharacterMovement())
+	{
+		Character->GetCharacterMovement()->JumpZVelocity = BuffJumpVelocity;
+	}
+	MulticastJumpBuff( BuffJumpVelocity );
+}
+
+void UBuffComponent::ResetJump()
+{
+	if (!Character || !Character->GetCharacterMovement()) return;
+
+	Character->GetCharacterMovement()->JumpZVelocity = InitialJumpVelocity;
+	MulticastJumpBuff( InitialJumpVelocity );
+}
+
+void UBuffComponent::MulticastJumpBuff_Implementation( float JumpVelocity )
+{
+	if (!Character || !Character->GetCharacterMovement()) return;
+
+	Character->GetCharacterMovement()->JumpZVelocity = JumpVelocity;
+}

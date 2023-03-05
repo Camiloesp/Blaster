@@ -210,6 +210,8 @@ public:
 	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
 	void PickupAmmo( EWeaponType WeaponType, int32 AmmoAmount );
+
+	void SetSpeeds( float NewBaseWalkSpeed, float NewCrouchSpeed );
 	
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 };
