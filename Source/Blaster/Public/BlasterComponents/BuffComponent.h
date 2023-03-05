@@ -31,6 +31,7 @@ public:
 public:
 
 	void Heal(float HealAmount, float HealingTime);
+	void ReplenishShield(float ShieldAmount, float ReplenishTime);
 	void BuffSpeed( float BuffBaseSpeed, float BuffCrouchSpeed, float BuffTime );
 	void BuffJump( float BuffJumpVelocity, float BuffTime );
 
@@ -41,6 +42,7 @@ public:
 protected:
 
 	void HealRampUp(float DeltaTime);
+	void ShieldRampUp( float DeltaTime );
 
 private:
 
@@ -52,7 +54,15 @@ private:
 	UPROPERTY(EditAnywhere)
 	float HealingRate = 0.f;
 	UPROPERTY( EditAnywhere )
-	float AmmountToHeal = 0.f;
+	float AmountToHeal = 0.f;
+
+	/* Shield */
+	bool bReplenishingShield = false;
+	UPROPERTY( EditAnywhere )
+	float ShieldReplenishRate = 0.f;
+	UPROPERTY( EditAnywhere )
+	float ShieldReplenishAmount = 0.f;
+
 
 	/* Speed */
 	FTimerHandle SpeedBuffTimer;

@@ -125,6 +125,18 @@ private:
 	float Health = 100.f;
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
+
+	/*
+	* Player Shield
+	*/
+	UPROPERTY( EditAnywhere, Category = "Player Stats" )
+	float MaxShield = 100.f;
+	UPROPERTY( ReplicatedUsing = OnRep_Shield, EditAnywhere, Category = "Player Stats" )
+	float Shield = 0.f;
+	UFUNCTION()
+	void OnRep_Shield(float LastShield);
+
+
 	ABlasterPlayerController* BlasterPlayerController;
 	bool bEliminated = false;
 
@@ -217,6 +229,7 @@ protected:
 public:
 
 	void UpdateHUDHealth();
+	void UpdateHUDShield();
 	void Eliminated();
 	// Handles player elimination.
 	UFUNCTION(NetMulticast, Reliable)
@@ -247,12 +260,15 @@ public:
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	FORCEINLINE UBuffComponent* GetBuff() const { return Buff; }
+	FORCEINLINE float GetShield() const { return Shield; }
+	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
 	ECombatState GetCombatState() const;
 
 	/* Setters */
 	FORCEINLINE void SetHealth( float Amount ) { Health = Amount; }
+	FORCEINLINE void SetShield( float Amount ) { Shield = Amount; }
 	void SetOverlappingWeapon(AWeapon* NewOverlappingWeapon);
 
 

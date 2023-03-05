@@ -57,4 +57,14 @@ private:
 	UPROPERTY( EditAnywhere )
 	UNiagaraSystem* PickupEffect;
 
+	/* 
+	* Delay for when we are allowed to detect overlap events 
+	* This will fix the issue when object is spawned and player is already overlapping.
+	* This will prevent the APickupSpawnPoint from binding the OnDestroyed delegate because the actor
+	* will already be destroyed.
+	*/
+	FTimerHandle BindOverlapTimer;
+	float BindOverlapTime = 0.25f;
+	void BindOverlapTimerFinished();
+
 };
