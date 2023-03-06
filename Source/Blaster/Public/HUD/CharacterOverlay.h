@@ -9,6 +9,7 @@
 
 class UProgressBar;
 class UTextBlock;
+class UImage;
 
 /**
  *
@@ -45,5 +46,8 @@ public:
 	UPROPERTY( meta = (BindWidget) )
 	UTextBlock* MatchCountdownText;
 
-
+	UPROPERTY( meta = (BindWidget) )
+	UImage* HighPingImage;
+	UPROPERTY( meta = (BindWidgetAnim), Transient ) // meta wont work without Transient. Transient means not serialized to disk
+	UWidgetAnimation* HighPingAnimation;
 };

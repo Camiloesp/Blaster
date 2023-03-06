@@ -26,6 +26,16 @@ enum class EWeaponState : uint8
 	EWS_Max					UMETA(DisplayName = "DefaultMAX")				// How many enum constants are in EWeaponState
 };
 
+UENUM( BlueprintType )
+enum class EFireType : uint8
+{
+	EFT_HitScan		UMETA( DisplayName = "Hit Scan Weapon" ),
+	EFT_Projectile	UMETA( DisplayName = "Projectile Weapon" ),
+	EFT_Shotgun		UMETA( DisplayName = "Shotgun" ),
+
+	EWS_Max			UMETA( DisplayName = "DefaultMAX" )
+};
+
 class UTexture2D;
 
 UCLASS()
@@ -149,6 +159,19 @@ public:
 
 	bool bDestroyWeapon = false;
 
+	UPROPERTY( EditAnywhere )
+	EFireType FireType;
+
+	/*
+	* Trace end with scatter.
+	*/
+	UPROPERTY( EditAnywhere, Category = "Weapon Scatter" )
+	float DistanceToSphere = 800.f;
+	UPROPERTY( EditAnywhere, Category = "Weapon Scatter" )
+	float SphereRadius = 75.f;
+	UPROPERTY( EditAnywhere, Category = "Weapon Scatter" )
+	bool bUseScatter = false;
+
 	UPROPERTY(EditAnywhere)
 	USoundCue* EquipSound;
 
@@ -158,6 +181,8 @@ public:
 	void Dropped();
 
 	void AddAmmo(int32 AmmoToAdd);
+
+	FVector TraceEndWithScatter( const FVector& HitTarget );
 
 	void SetHUDAmmo();
 
