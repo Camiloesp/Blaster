@@ -492,7 +492,7 @@ void UCombatComponent::UpdateAmmoValues()
 	{
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
 	}
-	EquippedWeapon->AddAmmo(-ReloadAmount); // ... to here
+	EquippedWeapon->AddAmmo(ReloadAmount); // ... to here
 }
 
 void UCombatComponent::UpdateShotgunAmmoValues()
@@ -509,7 +509,7 @@ void UCombatComponent::UpdateShotgunAmmoValues()
 	{
 		Controller->SetHUDCarriedAmmo(CarriedAmmo);
 	}
-	EquippedWeapon->AddAmmo(-1);
+	EquippedWeapon->AddAmmo(1);
 	bCanFire = true;
 
 	if (EquippedWeapon->IsFull() || CarriedAmmo == 0)
