@@ -447,9 +447,11 @@ void UCombatComponent::ReloadEmptyWeapon()
 
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmo > 0 && CombatState == ECombatState::ECS_Unoccupied && EquippedWeapon && !EquippedWeapon->IsFull())
+	if (CarriedAmmo > 0 && CombatState == ECombatState::ECS_Unoccupied && EquippedWeapon && !EquippedWeapon->IsFull() && !bLocallyReloading)
 	{
 		ServerReload();
+		HandleReload();
+		bLocallyReloading = true;
 	}
 }
 
@@ -458,13 +460,35 @@ void UCombatComponent::ServerReload_Implementation()
 	if (!Character || !EquippedWeapon) return;
 
 	CombatState = ECombatState::ECS_Reloading;
-	HandleReload();
+	if (!Character->IsLocallyControlled()) HandleReload();
+}
+
+void UCombatComponent::HandleReload()
+{
+	if (Character)
+	{
+		Character->PlayReloadMontage();
+	}
+}
+
+int32 UCombatComponent::AmountToReload()
+{
+	if (!EquippedWeapon) return 0;
+	int32 RoomInMag = EquippedWeapon->GetMagCapacity() - EquippedWeapon->GetAmmo();
+
+	if (CarriedAmmoMap.Contains( EquippedWeapon->GetWeaponType() ))
+	{
+		int32 AmountCarried = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+		int32 Least = FMath::Min( RoomInMag, AmountCarried );
+		return FMath::Clamp( RoomInMag, 0, Least );
+	}
+	return 0;
 }
 
 void UCombatComponent::FinishReloading() // Called from anim notify
 {
 	if (!Character) return;
-
+	bLocallyReloading = false;
 	if (Character->HasAuthority())
 	{
 		CombatState = ECombatState::ECS_Unoccupied;
@@ -542,7 +566,7 @@ void UCombatComponent::OnRep_CombatState()
 	switch (CombatState)
 	{
 	case ECombatState::ECS_Reloading:
-		HandleReload();
+		if (Character && !Character->IsLocallyControlled()) HandleReload();
 		break;
 	case ECombatState::ECS_Unoccupied:
 		if (bFireButtonPressed)
@@ -559,25 +583,6 @@ void UCombatComponent::OnRep_CombatState()
 		}
 		break;
 	}
-}
-
-void UCombatComponent::HandleReload()
-{
-	Character->PlayReloadMontage();
-}
-
-int32 UCombatComponent::AmountToReload()
-{
-	if (!EquippedWeapon) return 0;
-	int32 RoomInMag = EquippedWeapon->GetMagCapacity() - EquippedWeapon->GetAmmo();
-
-	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
-	{
-		int32 AmountCarried = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
-		int32 Least = FMath::Min(RoomInMag, AmountCarried);
-		return FMath::Clamp(RoomInMag, 0, Least);
-	}
-	return 0;
 }
 
 void UCombatComponent::ThrowGrenade()
@@ -819,6 +824,7 @@ void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 bool UCombatComponent::CanFire()
 {
 	if (!EquippedWeapon) return false;
+	if (bLocallyReloading) return false;
 	if (!EquippedWeapon->IsEmpty() && bCanFire && CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun) return true;
 	return !EquippedWeapon->IsEmpty() && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
 }

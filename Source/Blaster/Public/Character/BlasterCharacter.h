@@ -279,6 +279,7 @@ public:
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
 	ECombatState GetCombatState() const;
+	bool IsLocallyReloading();
 
 	/* Setters */
 	FORCEINLINE void SetHealth( float Amount ) { Health = Amount; }
