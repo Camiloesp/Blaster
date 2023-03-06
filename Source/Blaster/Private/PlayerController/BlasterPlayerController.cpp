@@ -13,6 +13,7 @@
 #include "BlasterComponents/CombatComponent.h"
 #include "GameState/BlasterGameState.h"
 #include "PlayerState/BlasterPlayerState.h"
+#include "Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
 void ABlasterPlayerController::ReceivedPlayer()
@@ -104,6 +105,13 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(InPawn);
 	if (BlasterCharacter)
 	{
+		// personal fix. not included in tutorial the Ammo calls
+		if (BlasterCharacter->GetCombat() && BlasterCharacter->GetCombat()->GetEquippedWeapon())
+		{
+			SetHUDCarriedAmmo( BlasterCharacter->GetCombat()->GetCarriedAmmo() );
+			SetHUDWeaponAmmo( BlasterCharacter->GetCombat()->GetEquippedWeapon()->GetAmmo() );
+		}
+
 		SetHUDHealth(BlasterCharacter->GetHealth(), BlasterCharacter->GetMaxHealth());
 		SetHUDShield(BlasterCharacter->GetShield(), BlasterCharacter->GetMaxShield());
 	}
@@ -218,6 +226,11 @@ void ABlasterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
 		FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
 		BlasterHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
 	}
+	else
+	{
+		bInitializeWeaponAmmo = true;
+		HUDWeaponAmmo = Ammo;
+	}
 }
 
 void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
@@ -234,6 +247,11 @@ void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 	{
 		FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
 		BlasterHUD->CharacterOverlay->CarriedAmmoAmount->SetText(FText::FromString(AmmoText));
+	}
+	else
+	{
+		bInitializeCarriedAmmo = true;
+		HUDCarriedAmmo = Ammo;
 	}
 }
 
@@ -350,10 +368,12 @@ void ABlasterPlayerController::PollInit()	// Set HUD in tick
 			CharacterOverlay = BlasterHUD->CharacterOverlay;
 			if (CharacterOverlay)
 			{
-				if (bInitializeHealth)	SetHUDHealth(HUDHealth, HUDMaxHealth);
-				if (bInitializeShield)	SetHUDShield(HUDShield, HUDMaxShield);
-				if (bInitializeScore)	SetHUDScore(HUDScore);
-				if (bInitializeDefeats)	SetHUDDefeats(HUDDefeats);
+				if (bInitializeHealth)		SetHUDHealth(HUDHealth, HUDMaxHealth);
+				if (bInitializeShield)		SetHUDShield(HUDShield, HUDMaxShield);
+				if (bInitializeScore)		SetHUDScore(HUDScore);
+				if (bInitializeDefeats)		SetHUDDefeats(HUDDefeats);
+				if (bInitializeCarriedAmmo)	SetHUDCarriedAmmo(HUDCarriedAmmo);
+				if (bInitializeWeaponAmmo)	SetHUDWeaponAmmo(HUDWeaponAmmo);
 
 				ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetPawn());
 				if (BlasterCharacter && BlasterCharacter->GetCombat())

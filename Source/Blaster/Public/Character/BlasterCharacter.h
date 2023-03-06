@@ -187,6 +187,11 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* AttachedGrenade;
 
+	/*
+	* Default Weapon
+	*/
+	UPROPERTY( EditAnywhere )
+	TSubclassOf<AWeapon> DefaultWeaponClass;
 
 protected:
 
@@ -226,10 +231,16 @@ protected:
 	// Poll for any relevant classes and initialize our hud
 	void PollInit();
 	void RotateInPlace(float DeltaTime);
+
+	void DropOrDestroyWeapon(AWeapon* Weapon);
+	void DropOrDestroyWeapons();
+
 public:
 
 	void UpdateHUDHealth();
 	void UpdateHUDShield();
+	void UpdateHUDAmmo();
+
 	void Eliminated();
 	// Handles player elimination.
 	UFUNCTION(NetMulticast, Reliable)
@@ -245,6 +256,9 @@ public:
 
 	UPROPERTY(Replicated)
 	bool bDisableGameplay = false;
+
+	void SpawnDefaultWeapon();
+
 
 	/* Getters */
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }

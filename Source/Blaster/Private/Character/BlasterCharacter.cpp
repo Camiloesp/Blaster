@@ -94,7 +94,9 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	SpawnDefaultWeapon(); // tutorial worked, but i have to call it onOnPosses in player controller to work.
 	// Set HUD
+	UpdateHUDAmmo();
 	UpdateHUDHealth();
 	UpdateHUDShield();
 
@@ -298,15 +300,8 @@ void ABlasterCharacter::EquipButtonPressed(const FInputActionValue& Value)
 	// Equip weapon on server.
 	if (Combat)
 	{
-		if (HasAuthority())
-		{
-			Combat->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			// We dont want to do important stuff like equipping weapons on clients. Tell server to do it.
-			ServerEquipButtonPressed(Value);
-		}
+		// We dont want to do important stuff like equipping weapons on clients. Tell server to do it.
+		ServerEquipButtonPressed( Value );
 	}
 }
 
@@ -315,7 +310,14 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation(const FInputActi
 	//EquipButtonPressed(Value); better to call EquipButtonPressed instead of code repetition.
 	if (Combat)
 	{
-		Combat->EquipWeapon(OverlappingWeapon);
+		if (OverlappingWeapon)
+		{
+			Combat->EquipWeapon(OverlappingWeapon);
+		}
+		else if (Combat->ShouldSwapWeapons())
+		{
+			Combat->SwapWeapons();
+		}
 	}
 }
 
@@ -675,6 +677,16 @@ void ABlasterCharacter::UpdateHUDShield()
 	}
 }
 
+void ABlasterCharacter::UpdateHUDAmmo()
+{
+	BlasterPlayerController = BlasterPlayerController ? BlasterPlayerController : Cast<ABlasterPlayerController>( Controller );
+	if (BlasterPlayerController && Combat && Combat->EquippedWeapon)
+	{
+		BlasterPlayerController->SetHUDCarriedAmmo(Combat->CarriedAmmo);
+		BlasterPlayerController->SetHUDWeaponAmmo( Combat->EquippedWeapon->GetAmmo() );
+	}
+}
+
 void ABlasterCharacter::PollInit()
 {
 	if (!BlasterPlayerState)
@@ -695,16 +707,43 @@ void ABlasterCharacter::Eliminated()
 	* Some things we want to do only in the server.
 	* This function is being called from GameMode class.
 	*/
-
-	if (Combat && Combat->EquippedWeapon)
-	{
-		Combat->EquippedWeapon->Dropped();
-	}
+	DropOrDestroyWeapons();
 
 	// Call multicast for logic in both server and clients.
 	MulticastEliminated();
 	
 	GetWorldTimerManager().SetTimer(EliminatedTimer, this, &ABlasterCharacter::EliminatedTimerFinished, EliminationDelay);
+}
+
+void ABlasterCharacter::DropOrDestroyWeapons()
+{
+	if (Combat)
+	{
+		if (Combat->EquippedWeapon)
+		{
+			DropOrDestroyWeapon( Combat->EquippedWeapon );
+		}
+
+		if (Combat->SecondaryWeapon)
+		{
+			DropOrDestroyWeapon( Combat->SecondaryWeapon );
+		}
+	}
+}
+
+void ABlasterCharacter::DropOrDestroyWeapon( AWeapon* Weapon )
+{
+	if (!Weapon) return;
+	
+	if (Weapon->bDestroyWeapon)
+	{
+		Weapon->Destroy();
+	}
+	else
+	{
+		Weapon->Dropped();
+	}
+	
 }
 
 void ABlasterCharacter::MulticastEliminated_Implementation()
@@ -798,6 +837,22 @@ bool ABlasterCharacter::IsWeaponEquipped()
 bool ABlasterCharacter::IsAiming()
 {
 	return (Combat && Combat->bAiming);
+}
+
+void ABlasterCharacter::SpawnDefaultWeapon()
+{
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	UWorld* World = GetWorld();
+	if (BlasterGameMode && World && !bEliminated && DefaultWeaponClass)
+	{
+		// We know we are in the server
+		AWeapon* StartingWeapon = World->SpawnActor<AWeapon>( DefaultWeaponClass );
+		if (Combat)
+		{
+			Combat->EquipWeapon( StartingWeapon );
+			StartingWeapon->bDestroyWeapon = true;	// Only weapons that start with the player get destroyed. (Change this to a timer that destroys weapon after being dropped? )
+		}
+	}
 }
 
 AWeapon* ABlasterCharacter::GetEquippedWeapon()

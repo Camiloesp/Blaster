@@ -18,11 +18,12 @@ class USoundCue;
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
-	EWS_Initial		UMETA(DisplayName = "Initial State"),	// State for when the weapon is sitting in the world that has never been picked up yet.
-	EWS_Equipped	UMETA(DisplayName = "Equipped"),		// Weapon being used.
-	EWS_Dropped		UMETA(DisplayName = "Dropped"),			// Dropping weapon. It bounces with physics.
+	EWS_Initial				UMETA(DisplayName = "Initial State"),			// State for when the weapon is sitting in the world that has never been picked up yet.
+	EWS_Equipped			UMETA(DisplayName = "Equipped"),				// Weapon being used.
+	EWS_EquippedSecondary	UMETA( DisplayName = "Equipped Secondary" ),	// Weapon being used.
+	EWS_Dropped				UMETA(DisplayName = "Dropped"),					// Dropping weapon. It bounces with physics.
 
-	EWS_Max			UMETA(DisplayName = "DefaultMAX")		// How many enum constants are in EWeaponState
+	EWS_Max					UMETA(DisplayName = "DefaultMAX")				// How many enum constants are in EWeaponState
 };
 
 class UTexture2D;
@@ -96,8 +97,15 @@ private:
 	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
 
+	
+
 protected:
 	
+	virtual void OnWeaponStateSet();
+	virtual void OnEquipped();
+	virtual void OnDropped();
+	virtual void OnEquippedSecondary();
+
 	UFUNCTION()
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -138,6 +146,8 @@ public:
 	float FireDelay = 0.15f;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	bool bAutomatic = true;
+
+	bool bDestroyWeapon = false;
 
 	UPROPERTY(EditAnywhere)
 	USoundCue* EquipSound;

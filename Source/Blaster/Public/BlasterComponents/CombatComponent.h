@@ -50,6 +50,8 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+	UPROPERTY( ReplicatedUsing = OnRep_SecondaryWeapon )
+	AWeapon* SecondaryWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;
@@ -150,6 +152,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+	UFUNCTION()
+	void OnRep_SecondaryWeapon();
 public:
 	void FireButtonPressed(bool bPressed); // moved to public so we can call it from controller
 protected:
@@ -182,14 +186,18 @@ protected:
 	void DropEquippedWeapon();
 	void AttachActorToRightHand(AActor* ActorToAttach);
 	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void AttachActorToBackpack( AActor* ActorToAttach );
 	void UpdateCarriedAmmo();
-	void PlayEquipWeaponSound();
+	void PlayEquipWeaponSound(AWeapon* WeaponToEquip);
 	void ReloadEmptyWeapon();
 	void ShowAttachedGrenade(bool bShowGrenade);
+	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
+	void EquipSecondaryWeapon( AWeapon* WeaponToEquip );
 
 public:
 
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void SwapWeapons();
 
 	void Reload();
 
@@ -213,5 +221,9 @@ public:
 
 	void SetSpeeds( float NewBaseWalkSpeed, float NewCrouchSpeed );
 	
+	bool ShouldSwapWeapons();
+
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
+	FORCEINLINE int32 GetCarriedAmmo() const { return CarriedAmmo; }
+	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 };
