@@ -62,7 +62,7 @@ void ABlasterPlayerController::CheckPing( float DeltaTime )
 		if (PlayerState)
 		{
 			// Compressed ping. This function returns ping/4.  That is why we get the ping ourselves in CheckTimeSync(). For a high ping warning this is okay
-			if (PlayerState->GetPing() * 4 > HighPingThreshold)
+			if (PlayerState->GetCompressedPing() * 4 > HighPingThreshold) // Warning: Dont use GetPing(). use GetCompressedPing or GetPingInMilliseconds
 			{
 				HighPingWarning();
 				PingAnimationRunningTime = 0.f;
@@ -469,7 +469,8 @@ void ABlasterPlayerController::ServerRequestServerTime_Implementation(float Time
 void ABlasterPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedClientRequest)
 {
 	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
-	float CurrentServerTime = TimeServerReceivedClientRequest + (0.5f * RoundTripTime);
+	SingleTripTime = (0.5f * RoundTripTime);
+	float CurrentServerTime = TimeServerReceivedClientRequest + SingleTripTime;
 	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
 }
 

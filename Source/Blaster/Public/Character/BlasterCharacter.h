@@ -17,11 +17,12 @@ class UWidgetComponent;
 class UInputMappingContext;
 class UAnimMontage;
 class USoundCue;
-
+class UBoxComponent;
 class ABlasterPlayerState;
 class AWeapon;
 class UCombatComponent;
 class UBuffComponent;
+class ULagCompensationComponent;
 class ABlasterPlayerController;
 
 UCLASS()
@@ -67,11 +68,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* OverheadWidget;
 
+	/*
+	* Blaster Components
+	*/
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	UCombatComponent* Combat;
 
 	UPROPERTY( VisibleAnywhere)
 	UBuffComponent* Buff;
+	UPROPERTY( VisibleAnywhere )
+	ULagCompensationComponent* LagCompensation;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* OverlappingWeapon;
@@ -259,6 +266,50 @@ public:
 
 	void SpawnDefaultWeapon();
 
+	/* 
+	* Hit boxes used for Server-Side rewind.
+	* attached to bones. (We have the boxes be the same name as the bones)
+	*/
+	UPROPERTY(Editanywhere)
+	UBoxComponent* head;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* pelvis;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* spine_02;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* spine_03;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* upperarm_l;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* upperarm_r;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* lowerarm_l;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* lowerarm_r;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* hand_l;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* hand_r;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* backpack;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* blanket;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* thigh_l;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* thigh_r;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* calf_l;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* calf_r;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* foot_l;
+	UPROPERTY( Editanywhere )
+	UBoxComponent* foot_r;
+
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> HitCollisionBoxes;
+	
 
 	/* Getters */
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
@@ -276,6 +327,7 @@ public:
 	FORCEINLINE UBuffComponent* GetBuff() const { return Buff; }
 	FORCEINLINE float GetShield() const { return Shield; }
 	FORCEINLINE float GetMaxShield() const { return MaxShield; }
+	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
 	ECombatState GetCombatState() const;

@@ -49,6 +49,8 @@ public:
 	void HandleMatchHasStarted();
 	void HandleCooldown();
 
+	float SingleTripTime = 0.f;
+
 protected:
 
 	void SetHUDTime();

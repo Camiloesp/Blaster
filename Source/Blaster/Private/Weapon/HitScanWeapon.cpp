@@ -4,10 +4,12 @@
 #include "Weapon/HitScanWeapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/BlasterCharacter.h"
+#include "PlayerController/BlasterPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
 #include "Weapon/WeaponTypes.h"
+#include "BlasterComponents/LagCompensationComponent.h"
 
 void AHitScanWeapon::Fire(const FVector& HitTarget)
 {
@@ -27,9 +29,30 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		WeaponTraceHit(Start, HitTarget, FireHit);
 
 		ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(FireHit.GetActor());
-		if (BlasterCharacter && HasAuthority() && InstigatorController)
+		if (BlasterCharacter && InstigatorController)
 		{
-			UGameplayStatics::ApplyDamage(BlasterCharacter, Damage, InstigatorController, this, UDamageType::StaticClass());
+			// server does not need to worry about ServerRewind since hosts are the server and have no lag.
+			if (HasAuthority() && !bUseServerSideRewind)
+			{
+				UGameplayStatics::ApplyDamage(BlasterCharacter, Damage, InstigatorController, this, UDamageType::StaticClass());
+			}
+
+			if (!HasAuthority() && bUseServerSideRewind)
+			{
+				BlasterOwnerCharacter = !BlasterOwnerCharacter ? Cast<ABlasterCharacter>( OwnerPawn ) : BlasterOwnerCharacter;
+				BlasterOwnerController = !BlasterOwnerController ? Cast<ABlasterPlayerController>( InstigatorController ) : BlasterOwnerController;
+				if (BlasterOwnerController && BlasterOwnerCharacter && BlasterOwnerCharacter->GetLagCompensation())
+				{
+					BlasterOwnerCharacter->GetLagCompensation()->ServerScoreRequest( 
+						BlasterCharacter, 
+						Start, 
+						HitTarget, 
+						BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime,
+						this
+					);
+				}
+			}
+
 		}
 
 		if (ImpactParticles)
