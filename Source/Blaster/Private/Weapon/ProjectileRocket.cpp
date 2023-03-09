@@ -10,8 +10,6 @@
 #include "Weapon/RocketMovementComponent.h"
 
 
-
-
 AProjectileRocket::AProjectileRocket()
 {
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
@@ -22,6 +20,23 @@ AProjectileRocket::AProjectileRocket()
 	RocketMovementComponent->bRotationFollowsVelocity = true; // Bullet keeps its rotation aligned with velocity. So if we use falloff due to gravity, the rotation of our root component will follow that trajectory.
 	RocketMovementComponent->SetIsReplicated(true);
 }
+
+#if WITH_EDITOR
+void AProjectileRocket::PostEditChangeProperty( FPropertyChangedEvent& Event )
+{
+	Super::PostEditChangeProperty( Event );
+
+	FName PropertyName = Event.Property ? Event.Property->GetFName() : NAME_None;
+	if (PropertyName == GET_MEMBER_NAME_CHECKED( AProjectileRocket, InitialSpeed ))
+	{
+		if (RocketMovementComponent)
+		{
+			RocketMovementComponent->InitialSpeed = InitialSpeed;
+			RocketMovementComponent->MaxSpeed = InitialSpeed;
+		}
+	}
+}
+#endif
 
 void AProjectileRocket::BeginPlay()
 {

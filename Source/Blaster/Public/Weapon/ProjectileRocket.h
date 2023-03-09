@@ -17,8 +17,13 @@ class BLASTER_API AProjectileRocket : public AProjectile
 
 public:
 	AProjectileRocket();
-
 	virtual void Destroyed() override;
+	
+// if statement but for the pre-processor. This won't be compiled for a build
+// Called after we change the AProjectile::InitialSpeed variable to update velocity in the editor. Lesson 203. Post Edit Change Property
+#if WITH_EDITOR
+virtual void PostEditChangeProperty( struct FPropertyChangedEvent& Event ) override;
+#endif
 
 protected:
 
