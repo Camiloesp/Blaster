@@ -78,9 +78,6 @@ protected:
 	UPROPERTY(EditAnywhere)
 	USoundCue* ImpactSound;
 
-	UPROPERTY(EditAnywhere)
-	float Damage = 20.f;
-
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -95,5 +92,7 @@ public:
 
 	UPROPERTY( EditAnywhere )
 	float InitialSpeed = 15000.f;
+
+	float Damage = 20.f;
 
 };
