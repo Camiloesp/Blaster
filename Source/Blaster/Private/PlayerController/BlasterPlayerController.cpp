@@ -13,8 +13,8 @@
 #include "BlasterComponents/CombatComponent.h"
 #include "GameState/BlasterGameState.h"
 #include "PlayerState/BlasterPlayerState.h"
-#include "Weapon/Weapon.h"
 #include "Components/Image.h"
+#include "Weapon/Weapon.h"
 #include "Net/UnrealNetwork.h"
 
 void ABlasterPlayerController::ReceivedPlayer()
@@ -61,11 +61,18 @@ void ABlasterPlayerController::CheckPing( float DeltaTime )
 		PlayerState = !PlayerState ? GetPlayerState<APlayerState>() : PlayerState;
 		if (PlayerState)
 		{
+			GEngine->AddOnScreenDebugMessage( 1, 4.f, FColor::Red, FString::Printf(TEXT("Ping: %d"), PlayerState->GetCompressedPing() * 4 ));
+
 			// Compressed ping. This function returns ping/4.  That is why we get the ping ourselves in CheckTimeSync(). For a high ping warning this is okay
 			if (PlayerState->GetCompressedPing() * 4 > HighPingThreshold) // Warning: Dont use GetPing(). use GetCompressedPing or GetPingInMilliseconds
 			{
 				HighPingWarning();
 				PingAnimationRunningTime = 0.f;
+				ServerReportPingStatus( true );
+			}
+			else
+			{
+				ServerReportPingStatus( false );
 			}
 		}
 		HighPingRunningTime = 0.f;
@@ -86,6 +93,12 @@ void ABlasterPlayerController::CheckPing( float DeltaTime )
 			StopHighPingWarning();
 		}
 	}
+}
+
+// Is the ping too high?
+void ABlasterPlayerController::ServerReportPingStatus_Implementation( bool bHighPing )
+{
+	HighPingDelegate.Broadcast( bHighPing );
 }
 
 void ABlasterPlayerController::CheckTimeSync(float DeltaTime)

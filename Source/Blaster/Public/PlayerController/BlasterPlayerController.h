@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "BlasterPlayerController.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FHighPingDelegate, bool, bPingTooHigh );
+
 class ABlasterHUD;
 class UCharacterOverlay;
 class ABlasterGameMode;
@@ -50,6 +52,8 @@ public:
 	void HandleCooldown();
 
 	float SingleTripTime = 0.f;
+
+	FHighPingDelegate HighPingDelegate;
 
 protected:
 
@@ -129,7 +133,9 @@ private:
 	float PingAnimationRunningTime = 0.f;
 	UPROPERTY( EditAnywhere )
 	float CheckPingFrequency = 20.f;
-	// Ping higher than 50 seconds is where the player starts noticing performance hits due to network connection.
+	UFUNCTION(Server, Reliable)
+	void ServerReportPingStatus( bool bHighPing );
+	// Ping higher than 50 (Miliseconds lecture 208 at end) seconds is where the player starts noticing performance hits due to network connection.
 	UPROPERTY( EditAnywhere )
 	float HighPingThreshold = 50.f;
 };
