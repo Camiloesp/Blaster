@@ -3,7 +3,9 @@
 
 #include "Weapon/ProjectileBullet.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/Character.h"
+#include "Character/BlasterCharacter.h"
+#include "PlayerController/BlasterPlayerController.h"
+#include "BlasterComponents/LagCompensationComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
 AProjectileBullet::AProjectileBullet()
@@ -36,6 +38,7 @@ void AProjectileBullet::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/*
 	FPredictProjectilePathParams PathParams;
 	PathParams.bTraceWithChannel = true;
 	PathParams.bTraceWithCollision = true;
@@ -50,18 +53,35 @@ void AProjectileBullet::BeginPlay()
 	PathParams.ActorsToIgnore.Add( this );
 
 	FPredictProjectilePathResult PathResult;
-	UGameplayStatics::PredictProjectilePath( this, PathParams, PathResult );
+	UGameplayStatics::PredictProjectilePath( this, PathParams, PathResult );*/
 }
 
 void AProjectileBullet::OnHit( UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit )
 {
-	ACharacter* OwnerCharacter = Cast<ACharacter>( GetOwner() );
+	ABlasterCharacter* OwnerCharacter = Cast<ABlasterCharacter>( GetOwner() );
 	if (OwnerCharacter)
 	{
-		AController* OwnerController = OwnerCharacter->Controller;
+		ABlasterPlayerController* OwnerController = Cast<ABlasterPlayerController>(OwnerCharacter->Controller);
 		if (OwnerController)
 		{
-			UGameplayStatics::ApplyDamage( OtherActor, Damage, OwnerController, this, UDamageType::StaticClass() );
+			if (OwnerCharacter->HasAuthority() && !bUseServerSideRewind)
+			{
+				UGameplayStatics::ApplyDamage( OtherActor, Damage, OwnerController, this, UDamageType::StaticClass() );
+				Super::OnHit( HitComp, OtherActor, OtherComp, NormalImpulse, Hit );
+				return;
+			}
+
+			ABlasterCharacter* HitCharacter = Cast<ABlasterCharacter>(OtherActor);
+			if (bUseServerSideRewind && OwnerCharacter->GetLagCompensation() && OwnerCharacter->IsLocallyControlled() && HitCharacter)
+			{
+				OwnerCharacter->GetLagCompensation()->ProjectileServerScoreRequest(
+					HitCharacter,
+					TraceStart,
+					InitialVelocity,
+					OwnerController->GetServerTime() - OwnerController->SingleTripTime
+				);
+			}
+
 		}
 	}
 
