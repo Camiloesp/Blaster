@@ -108,6 +108,8 @@ private:
 	UAnimMontage* EliminatedMontage;
 	UPROPERTY(EditAnywhere, Category = Combat)
 	UAnimMontage* ThrowGrenadeMontage;
+	UPROPERTY( EditAnywhere, Category = Combat )
+	UAnimMontage* SwapMontage; // SwapWeapon
 
 
 	void HideCameraIfCharacterClose();
@@ -253,10 +255,12 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEliminated();
 
+	/* Play montages */
 	void PlayFireMontage(bool bAiming);
 	void PlayReloadMontage();
 	void PlayEliminatedMontage();
 	void PlayThrowGrenadeMontage();
+	void PlaySwapMontage();
 
 	bool IsWeaponEquipped();
 	bool IsAiming();
@@ -310,6 +314,7 @@ public:
 	UPROPERTY()
 	TMap<FName, UBoxComponent*> HitCollisionBoxes;
 	
+	bool bFinishedSwapping = false;
 
 	/* Getters */
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }

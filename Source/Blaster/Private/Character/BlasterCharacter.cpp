@@ -399,7 +399,18 @@ void ABlasterCharacter::EquipButtonPressed(const FInputActionValue& Value)
 	if (Combat)
 	{
 		// We dont want to do important stuff like equipping weapons on clients. Tell server to do it.
-		ServerEquipButtonPressed( Value );
+		if (Combat->CombatState == ECombatState::ECS_Unoccupied) ServerEquipButtonPressed( Value );
+		bool bSwap = Combat->ShouldSwapWeapons() && 
+			!HasAuthority() && 
+			Combat->CombatState == ECombatState::ECS_Unoccupied && 
+			!OverlappingWeapon;
+
+		if (bSwap)
+		{
+			PlaySwapMontage();
+			Combat->CombatState = ECombatState::ECS_SwappingWeapons;
+			bFinishedSwapping = false;
+		}
 	}
 }
 
@@ -703,6 +714,15 @@ void ABlasterCharacter::PlayThrowGrenadeMontage()
 	if (AnimInstance && ThrowGrenadeMontage)
 	{
 		AnimInstance->Montage_Play(ThrowGrenadeMontage);
+	}
+}
+
+void ABlasterCharacter::PlaySwapMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && SwapMontage)
+	{
+		AnimInstance->Montage_Play( SwapMontage );
 	}
 }
 

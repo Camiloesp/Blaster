@@ -24,13 +24,14 @@ AWeapon::AWeapon()
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
+
 	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	EnableCustomDepth(true);
 	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
 	WeaponMesh->MarkRenderStateDirty(); // <-- Refresh. each time we change the CustomDepthStencilValue ^, we want to make sure that that change results in updating this post process highlight material for the higlight on the weapon.
-	EnableCustomDepth(true);
 
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
 	AreaSphere->SetupAttachment(RootComponent);
@@ -112,10 +113,10 @@ void AWeapon::OnEquipped()
 	}
 	EnableCustomDepth( false );
 
-	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter : Cast<ABlasterCharacter>( GetOwner() );
+	BlasterOwnerCharacter = !BlasterOwnerCharacter ? Cast<ABlasterCharacter>( GetOwner() ) : BlasterOwnerCharacter;
 	if (BlasterOwnerCharacter && bUseServerSideRewind)
 	{
-		BlasterOwnerController = BlasterOwnerController ? BlasterOwnerController : Cast<ABlasterPlayerController>( BlasterOwnerCharacter->Controller );
+		BlasterOwnerController = !BlasterOwnerController ? Cast<ABlasterPlayerController>( BlasterOwnerCharacter->Controller ) : BlasterOwnerController;
 		if (BlasterOwnerController && HasAuthority() && !BlasterOwnerController->HighPingDelegate.IsBound())
 		{
 			BlasterOwnerController->HighPingDelegate.AddDynamic( this, &AWeapon::OnPingTooHigh );
@@ -140,10 +141,10 @@ void AWeapon::OnDropped()
 	WeaponMesh->MarkRenderStateDirty();
 	EnableCustomDepth( true );
 
-	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter : Cast<ABlasterCharacter>( GetOwner() );
-	if (BlasterOwnerCharacter && bUseServerSideRewind)
+	BlasterOwnerCharacter = !BlasterOwnerCharacter ? Cast<ABlasterCharacter>( GetOwner() ) : BlasterOwnerCharacter;
+	if (BlasterOwnerCharacter) // bUseServerSideRewind <- removed
 	{
-		BlasterOwnerController = BlasterOwnerController ? BlasterOwnerController : Cast<ABlasterPlayerController>( BlasterOwnerCharacter->Controller );
+		BlasterOwnerController = !BlasterOwnerController ? Cast<ABlasterPlayerController>( BlasterOwnerCharacter->Controller ) : BlasterOwnerController;
 		if (BlasterOwnerController && HasAuthority() && BlasterOwnerController->HighPingDelegate.IsBound())
 		{
 			BlasterOwnerController->HighPingDelegate.RemoveDynamic( this, &AWeapon::OnPingTooHigh );
@@ -164,17 +165,17 @@ void AWeapon::OnEquippedSecondary()
 		WeaponMesh->SetEnableGravity( true );
 		WeaponMesh->SetCollisionResponseToAllChannels( ECollisionResponse::ECR_Ignore );
 	}
-	EnableCustomDepth(true);
+	//EnableCustomDepth(true);
 	if (WeaponMesh)
 	{
 		WeaponMesh->SetCustomDepthStencilValue( CUSTOM_DEPTH_TAN );
 		WeaponMesh->MarkRenderStateDirty();
 	}
 
-	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter : Cast<ABlasterCharacter>( GetOwner() );
-	if (BlasterOwnerCharacter && bUseServerSideRewind)
+	BlasterOwnerCharacter = !BlasterOwnerCharacter ? Cast<ABlasterCharacter>( GetOwner() ) : BlasterOwnerCharacter;
+	if (BlasterOwnerCharacter) //bUseServerSideRewind
 	{
-		BlasterOwnerController = BlasterOwnerController ? BlasterOwnerController : Cast<ABlasterPlayerController>( BlasterOwnerCharacter->Controller );
+		BlasterOwnerController = !BlasterOwnerController ? Cast<ABlasterPlayerController>( BlasterOwnerCharacter->Controller ) : BlasterOwnerController;
 		if (BlasterOwnerController && HasAuthority() && BlasterOwnerController->HighPingDelegate.IsBound())
 		{
 			BlasterOwnerController->HighPingDelegate.RemoveDynamic( this, &AWeapon::OnPingTooHigh );
@@ -184,10 +185,10 @@ void AWeapon::OnEquippedSecondary()
 
 void AWeapon::SetHUDAmmo()
 {
-	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter : Cast<ABlasterCharacter>(GetOwner());
+	BlasterOwnerCharacter = !BlasterOwnerCharacter ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
 	if (BlasterOwnerCharacter)
 	{
-		BlasterOwnerController = BlasterOwnerController ? BlasterOwnerController : Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller);
+		BlasterOwnerController = !BlasterOwnerController ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterOwnerController;
 		if (BlasterOwnerController)
 		{
 			BlasterOwnerController->SetHUDWeaponAmmo(Ammo);
@@ -344,8 +345,6 @@ FVector AWeapon::TraceEndWithScatter( const FVector& HitTarget )
 
 	const FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform( GetWeaponMesh() );
 	const FVector TraceStart = SocketTransform.GetLocation();
-
-
 
 	const FVector ToTargetNormalized = (HitTarget - TraceStart).GetSafeNormal();
 	const FVector SphereCenter = TraceStart + ToTargetNormalized * DistanceToSphere;
