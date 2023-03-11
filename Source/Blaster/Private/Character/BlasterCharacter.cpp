@@ -819,7 +819,7 @@ void ABlasterCharacter::PollInit()
 	}
 }
 
-void ABlasterCharacter::Eliminated()
+void ABlasterCharacter::Eliminated( bool bPlayerLeftGame )
 {
 	/*
 	* Some things we want to do only in the server.
@@ -828,9 +828,7 @@ void ABlasterCharacter::Eliminated()
 	DropOrDestroyWeapons();
 
 	// Call multicast for logic in both server and clients.
-	MulticastEliminated();
-	
-	GetWorldTimerManager().SetTimer(EliminatedTimer, this, &ABlasterCharacter::EliminatedTimerFinished, EliminationDelay);
+	MulticastEliminated( bPlayerLeftGame );
 }
 
 void ABlasterCharacter::DropOrDestroyWeapons()
@@ -864,8 +862,9 @@ void ABlasterCharacter::DropOrDestroyWeapon( AWeapon* Weapon )
 	
 }
 
-void ABlasterCharacter::MulticastEliminated_Implementation()
+void ABlasterCharacter::MulticastEliminated_Implementation( bool bPlayerLeftGame )
 {
+	bLeftGame = bPlayerLeftGame;
 	if (BlasterPlayerController)
 	{
 		BlasterPlayerController->SetHUDWeaponAmmo(0);
@@ -917,14 +916,31 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	{
 		ShowSniperScopeWidget(false);
 	}
+
+	GetWorldTimerManager().SetTimer( EliminatedTimer, this, &ABlasterCharacter::EliminatedTimerFinished, EliminationDelay );
 }
 
 void ABlasterCharacter::EliminatedTimerFinished()
 {
 	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
-	if (BlasterGameMode)
+	if (BlasterGameMode && !bLeftGame)
 	{
 		BlasterGameMode->RequestRespawn(this, Controller);
+	}
+
+	if (bLeftGame && IsLocallyControlled())
+	{
+		OnLeftGame.Broadcast();
+	}
+}
+
+void ABlasterCharacter::ServerLeaveGame_Implementation()
+{
+	ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+	BlasterPlayerState = !BlasterPlayerState? GetPlayerState<ABlasterPlayerState>() : BlasterPlayerState;
+	if (BlasterGameMode && BlasterPlayerState)
+	{
+		BlasterGameMode->PlayerLeftGame( BlasterPlayerState );
 	}
 }
 

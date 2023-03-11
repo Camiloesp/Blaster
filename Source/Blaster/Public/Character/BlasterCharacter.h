@@ -11,6 +11,10 @@
 #include "BlasterTypes/CombatState.h"
 #include "BlasterCharacter.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE( FOnLeftGame );
+
+
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
@@ -147,12 +151,17 @@ private:
 
 
 	ABlasterPlayerController* BlasterPlayerController;
-	bool bEliminated = false;
 
+	/*
+	* Elimination
+	*/
+	bool bEliminated = false;
 	FTimerHandle EliminatedTimer;
 	UPROPERTY(EditDefaultsOnly)
 	float EliminationDelay = 3.f;
 	void EliminatedTimerFinished();
+
+	bool bLeftGame = false;
 
 	/*
 	* Dissolve effect
@@ -250,10 +259,10 @@ public:
 	void UpdateHUDShield();
 	void UpdateHUDAmmo();
 
-	void Eliminated();
+	void Eliminated(bool bPlayerLeftGame);
 	// Handles player elimination.
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastEliminated();
+	void MulticastEliminated( bool bPlayerLeftGame );
 
 	/* Play montages */
 	void PlayFireMontage(bool bAiming);
@@ -267,6 +276,10 @@ public:
 
 	UPROPERTY(Replicated)
 	bool bDisableGameplay = false;
+
+	UFUNCTION( Server, Reliable )
+	void ServerLeaveGame();
+	FOnLeftGame OnLeftGame;
 
 	void SpawnDefaultWeapon();
 
@@ -333,6 +346,8 @@ public:
 	FORCEINLINE float GetShield() const { return Shield; }
 	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
+	FORCEINLINE UInputMappingContext* GetInputMappingContext() const { return BlasterMappingContext; }
+	FORCEINLINE UBlasterInputConfigData* GetInputConfigData() const { return InputConfigData; }
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
 	ECombatState GetCombatState() const;
@@ -342,7 +357,6 @@ public:
 	FORCEINLINE void SetHealth( float Amount ) { Health = Amount; }
 	FORCEINLINE void SetShield( float Amount ) { Shield = Amount; }
 	void SetOverlappingWeapon(AWeapon* NewOverlappingWeapon);
-
 
 
 	UFUNCTION(BlueprintImplementableEvent)

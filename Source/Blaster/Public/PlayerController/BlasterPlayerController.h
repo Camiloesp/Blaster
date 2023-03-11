@@ -8,9 +8,13 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FHighPingDelegate, bool, bPingTooHigh );
 
+class UUserWidget;
 class ABlasterHUD;
+class UReturnToMainMenu;
 class UCharacterOverlay;
 class ABlasterGameMode;
+class UInputAction;
+struct FInputActionValue;
 /**
  *
  */
@@ -26,11 +30,13 @@ public:
 	virtual void ReceivedPlayer() override;	// Sync with server clock as soon as possible
 	virtual void GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& OutLifetimeProps ) const override;
 
+
 protected:
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaTime ) override;
 
+	virtual void SetupInputComponent() override;
 
 	/* ABlasterPlayerController */
 
@@ -56,6 +62,17 @@ public:
 	FHighPingDelegate HighPingDelegate;
 
 protected:
+
+	void ShowReturnToMainMenu( const FInputActionValue& Value );
+	/*
+	* Return to main menu
+	*/
+	UPROPERTY(EditAnywhere, Category = HUD)
+	TSubclassOf<UUserWidget> ReturnToMainMenuWidget;
+	UPROPERTY()
+	UReturnToMainMenu* ReturnToMainMenu;
+	bool bReturnToMainMenuOpen = false;
+
 
 	void SetHUDTime();
 	void PollInit();	// Create a FlyingPawn for this instead?
@@ -85,7 +102,11 @@ protected:
 	void HighPingWarning();
 	void StopHighPingWarning();
 	void CheckPing(float DeltaTime);
+
 private:
+
+	UPROPERTY( EditAnywhere )
+	UInputAction* QuitButton;
 
 	UPROPERTY()
 	ABlasterHUD* BlasterHUD;

@@ -15,7 +15,14 @@
 #include "PlayerState/BlasterPlayerState.h"
 #include "Components/Image.h"
 #include "Weapon/Weapon.h"
+#include "HUD/ReturnToMainMenu.h"
 #include "Net/UnrealNetwork.h"
+
+// Enhanced input
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
+#include "Components/InputComponent.h"
+#include "InputActions/BlasterInputConfigData.h" // list of inputs
 
 void ABlasterPlayerController::ReceivedPlayer()
 {
@@ -50,6 +57,40 @@ void ABlasterPlayerController::Tick(float DeltaTime)
 	CheckTimeSync(DeltaTime);
 	PollInit();
 	CheckPing(DeltaTime);
+}
+
+void ABlasterPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (!InputComponent) return;
+	
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>( InputComponent ))
+	{
+		EnhancedInputComponent->BindAction( QuitButton, ETriggerEvent::Triggered, this, &ABlasterPlayerController::ShowReturnToMainMenu );
+	}
+}
+
+void ABlasterPlayerController::ShowReturnToMainMenu( const FInputActionValue& Value )
+{
+	if (!ReturnToMainMenuWidget) return;
+	if (!ReturnToMainMenu)
+	{
+		ReturnToMainMenu = CreateWidget<UReturnToMainMenu>( this, ReturnToMainMenuWidget );
+	}
+
+	if (ReturnToMainMenu)
+	{
+		bReturnToMainMenuOpen = !bReturnToMainMenuOpen;
+		if (bReturnToMainMenuOpen)
+		{
+			ReturnToMainMenu->MenuSetup();
+		}
+		else
+		{
+			ReturnToMainMenu->MenuTearDown();
+		}
+	}
 }
 
 void ABlasterPlayerController::CheckPing( float DeltaTime )
