@@ -9,6 +9,7 @@
 #include "Interfaces/InteractWithCrosshairsInterface.h"
 #include "Components/TimelineComponent.h"
 #include "BlasterTypes/CombatState.h"
+#include "BlasterTypes/Team.h"
 #include "BlasterCharacter.generated.h"
 
 
@@ -30,6 +31,7 @@ class ULagCompensationComponent;
 class ABlasterPlayerController;
 class UNiagaraSystem;
 class UNiagaraComponent;
+class ABlasterGameMode;
 
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
@@ -182,8 +184,22 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Elimination)
 	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
 	// Material instance set on the blueprint, used with the dynamic material instance.
-	UPROPERTY(EditAnywhere, Category = Elimination)
+	UPROPERTY( VisibleAnywhere, Category = Elimination)
 	UMaterialInstance* DissolveMaterialInstance;
+
+	/*
+	* Team colors
+	*/
+	UPROPERTY( EditAnywhere, Category = Elimination )
+	UMaterialInstance* RedDissolveMatInst;
+	UPROPERTY( EditAnywhere, Category = Elimination )
+	UMaterialInstance* RedMaterial;
+	UPROPERTY( EditAnywhere, Category = Elimination )
+	UMaterialInstance* BlueDissolveMatInst;
+	UPROPERTY( EditAnywhere, Category = Elimination )
+	UMaterialInstance* BlueMaterial;
+	UPROPERTY( EditAnywhere, Category = Elimination )
+	UMaterialInstance* OriginalMaterial;
 
 	/*
 	* Elimination FX
@@ -220,6 +236,9 @@ private:
 	*/
 	UPROPERTY( EditAnywhere )
 	TSubclassOf<AWeapon> DefaultWeaponClass;
+
+	UPROPERTY()
+	ABlasterGameMode* BlasterGameMode;
 
 protected:
 
@@ -295,6 +314,8 @@ public:
 	void MulticastGainTheLead();
 	UFUNCTION( NetMulticast, Reliable )
 	void MulticastLostTheLead();
+
+	void SetTeamColor( ETeam Team );
 
 	void SpawnDefaultWeapon();
 

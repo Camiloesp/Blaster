@@ -73,6 +73,11 @@ void ABlasterGameMode::OnMatchStateSet()
 	}
 }
 
+float ABlasterGameMode::CalculateDamage( AController* Attacker, AController* Victim, float BaseDamage )
+{
+	return BaseDamage;
+}
+
 void ABlasterGameMode::PlayerEliminated( ABlasterCharacter* EliminatedCharacter, ABlasterPlayerController* VictimController, ABlasterPlayerController* AttackerController )
 {
 	ABlasterPlayerState* AttackerPlayerState = AttackerController ? Cast<ABlasterPlayerState>( AttackerController->PlayerState ) : nullptr;
