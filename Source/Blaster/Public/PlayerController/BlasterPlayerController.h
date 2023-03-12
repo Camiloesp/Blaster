@@ -15,6 +15,8 @@ class UCharacterOverlay;
 class ABlasterGameMode;
 class UInputAction;
 struct FInputActionValue;
+class ABlasterPlayerState;
+class ABlasterGameState;
 /**
  *
  */
@@ -51,10 +53,15 @@ public:
 	void SetHUDMatchCountdown( float CountdownTime );
 	void SetHUDAnnouncementCountdown( float CountdownTime );
 	void SetHUDGrenades( int32 Grenades );
+	void HideTeamScores();
+	void InitTeamScores();
+	void SetHUDRedTeamScore( int32 RedScore );
+	void SetHUDBlueTeamScore( int32 BlueScore );
+
 
 	virtual float GetServerTime(); // Synced with server world clock
-	void OnMatchStateSet( FName State );
-	void HandleMatchHasStarted();
+	void OnMatchStateSet( FName State, bool bTeamsMatch = false );
+	void HandleMatchHasStarted( bool bTeamsMatch = false );
 	void HandleCooldown();
 
 	void BroadcastElimination( APlayerState* Attacker, APlayerState* Victim );
@@ -107,6 +114,15 @@ protected:
 	void HighPingWarning();
 	void StopHighPingWarning();
 	void CheckPing(float DeltaTime);
+
+	UPROPERTY( ReplicatedUsing = OnRep_ShowTeamScores )
+	bool bShowTeamScores = false;
+
+	UFUNCTION()
+	void OnRep_ShowTeamScores();
+
+	FString GetInfoText( const TArray<ABlasterPlayerState*>& Players );
+	FString GetTeamsInfoText( ABlasterGameState* BlasterGameState );
 
 private:
 
