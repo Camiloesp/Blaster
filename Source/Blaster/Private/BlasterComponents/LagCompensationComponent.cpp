@@ -141,7 +141,7 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit( const FFramePacka
 				UBoxComponent* Box = Cast<UBoxComponent>( ConfirmHitResult.Component );
 				if (Box)
 				{
-					DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat(Box->GetComponentRotation()), FColor::Red, false, 8.f );
+					//DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat(Box->GetComponentRotation()), FColor::Red, false, 8.f );
 				}
 			}
 			ResetHitBoxes( HitCharacter, CurrentFrame );
@@ -173,7 +173,7 @@ FServerSideRewindResult ULagCompensationComponent::ConfirmHit( const FFramePacka
 					UBoxComponent* Box = Cast<UBoxComponent>( ConfirmHitResult.Component );
 					if (Box)
 					{
-						DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Blue, false, 8.f );
+						//DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Blue, false, 8.f );
 					}
 				}
 				ResetHitBoxes( HitCharacter, CurrentFrame );
@@ -209,8 +209,8 @@ FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit( const F
 	PathParams.ProjectileRadius = 5.f;
 	PathParams.TraceChannel = ECC_HitBox;
 	PathParams.ActorsToIgnore.Add( GetOwner() );
-	PathParams.DrawDebugTime = 5.f;
-	PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+	//PathParams.DrawDebugTime = 5.f;
+	//PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
 
 	FPredictProjectilePathResult PathResult;
 	UGameplayStatics::PredictProjectilePath( this, PathParams, PathResult );
@@ -222,7 +222,7 @@ FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit( const F
 			UBoxComponent* Box = Cast<UBoxComponent>( PathResult.HitResult.Component );
 			if (Box)
 			{
-				DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Red, false, 8.f );
+				//DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Red, false, 8.f );
 			}
 		}
 		ResetHitBoxes( HitCharacter, CurrentFrame );
@@ -249,7 +249,7 @@ FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit( const F
 				UBoxComponent* Box = Cast<UBoxComponent>( PathResult.HitResult.Component );
 				if (Box)
 				{
-					DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Blue, false, 8.f );
+					//DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Blue, false, 8.f );
 				}
 			}
 			ResetHitBoxes( HitCharacter, CurrentFrame );
@@ -314,7 +314,7 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit( con
 					UBoxComponent* Box = Cast<UBoxComponent>( ConfirmHitResult.Component );
 					if (Box)
 					{
-						DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Red, false, 8.f );
+						//DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Red, false, 8.f );
 					}
 				}
 
@@ -368,7 +368,7 @@ FShotgunServerSideRewindResult ULagCompensationComponent::ShotgunConfirmHit( con
 					UBoxComponent* Box = Cast<UBoxComponent>( ConfirmHitResult.Component );
 					if (Box)
 					{
-						DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Blue, false, 8.f );
+						//DrawDebugBox( GetWorld(), Box->GetComponentLocation(), Box->GetScaledBoxExtent(), FQuat( Box->GetComponentRotation() ), FColor::Blue, false, 8.f );
 					}
 				}
 

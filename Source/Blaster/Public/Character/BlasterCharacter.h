@@ -28,6 +28,8 @@ class UCombatComponent;
 class UBuffComponent;
 class ULagCompensationComponent;
 class ABlasterPlayerController;
+class UNiagaraSystem;
+class UNiagaraComponent;
 
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
@@ -184,7 +186,7 @@ private:
 	UMaterialInstance* DissolveMaterialInstance;
 
 	/*
-	* Elimination Bot
+	* Elimination FX
 	*/
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* EliminationBotEffect;
@@ -192,6 +194,14 @@ private:
 	UParticleSystemComponent* EliminationBotComponent;
 	UPROPERTY(EditAnywhere)
 	USoundCue* EliminationBotSound;
+
+	/*
+	* Crown FX
+	*/
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* CrownSystem;
+	UPROPERTY( EditAnywhere )
+	UNiagaraComponent* CrownComponent;
 
 	UPROPERTY()
 	ABlasterPlayerState* BlasterPlayerState;
@@ -280,6 +290,11 @@ public:
 	UFUNCTION( Server, Reliable )
 	void ServerLeaveGame();
 	FOnLeftGame OnLeftGame;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastGainTheLead();
+	UFUNCTION( NetMulticast, Reliable )
+	void MulticastLostTheLead();
 
 	void SpawnDefaultWeapon();
 

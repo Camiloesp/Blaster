@@ -13,6 +13,9 @@
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/BoxComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+#include "GameState/BlasterGameState.h"
 #include "Net/UnrealNetwork.h"
 
 // Enhanced input
@@ -815,6 +818,12 @@ void ABlasterCharacter::PollInit()
 			// Add 0 score everry frame to existing score to update client's score faster.
 			BlasterPlayerState->AddToScore(0.f);
 			BlasterPlayerState->AddToDefeats(0);
+
+			ABlasterGameState* BlasterGameState = Cast<ABlasterGameState>( UGameplayStatics::GetGameState(this) );
+			if (BlasterGameState && BlasterGameState->TopScoringPlayers.Contains( BlasterPlayerState ))
+			{
+				MulticastGainTheLead();
+			}
 		}
 	}
 }
@@ -917,6 +926,11 @@ void ABlasterCharacter::MulticastEliminated_Implementation( bool bPlayerLeftGame
 		ShowSniperScopeWidget(false);
 	}
 
+	if (CrownComponent)
+	{
+		CrownComponent->DestroyComponent();
+	}
+
 	GetWorldTimerManager().SetTimer( EliminatedTimer, this, &ABlasterCharacter::EliminatedTimerFinished, EliminationDelay );
 }
 
@@ -971,6 +985,37 @@ bool ABlasterCharacter::IsWeaponEquipped()
 bool ABlasterCharacter::IsAiming()
 {
 	return (Combat && Combat->bAiming);
+}
+
+void ABlasterCharacter::MulticastGainTheLead_Implementation()
+{
+	if (!CrownSystem) return;
+	
+	if (!CrownComponent)
+	{
+		CrownComponent = UNiagaraFunctionLibrary::SpawnSystemAttached( 
+			CrownSystem, 
+			GetCapsuleComponent(), 
+			FName(), 
+			GetActorLocation() + FVector(0.f, 0.f, 110.f),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition,
+			false
+		);
+	}
+
+	if (CrownComponent)
+	{
+		CrownComponent->Activate();
+	}
+}
+
+void ABlasterCharacter::MulticastLostTheLead_Implementation()
+{
+	if (CrownComponent)
+	{
+		CrownComponent->DestroyComponent();
+	}
 }
 
 void ABlasterCharacter::SpawnDefaultWeapon()

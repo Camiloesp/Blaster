@@ -6,11 +6,12 @@
 #include "GameFramework/HUD.h"
 #include "BlasterHUD.generated.h"
 
-
+class APlayerController;
 class UTexture2D;
 class UCharacterOverlay;
 class UUserWidget;
 class UAnnouncement;
+class UEliminationAnnouncement;
 
 USTRUCT(BlueprintType)
 struct FHUDPackage
@@ -53,11 +54,16 @@ public:
 	UAnnouncement* Announcement;
 	void AddAnnouncement();
 
+	void AddEliminationAnnouncement( FString Attacker, FString Victim );
+
 protected:
 
 	virtual void BeginPlay() override;
 
 private:
+
+	UPROPERTY()
+	APlayerController* OwningPlayer;
 
 	FHUDPackage HUDPackage;
 
@@ -65,6 +71,18 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float CrosshairSpreadMax = 16.f;
+
+	UPROPERTY( EditAnywhere )
+	TSubclassOf<UEliminationAnnouncement> EliminationAnnouncementClass;
+
+	UPROPERTY(EditAnywhere)
+	float EliminationAnnouncementTime = 2.5f;
+
+	UPROPERTY()
+	TArray<UEliminationAnnouncement*> EliminationMessages;
+
+	UFUNCTION()
+	void ELiminationAnnouncementTimerFinished( UEliminationAnnouncement* MessageToRemove );
 
 public:
 

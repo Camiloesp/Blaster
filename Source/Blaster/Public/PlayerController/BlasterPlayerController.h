@@ -57,11 +57,16 @@ public:
 	void HandleMatchHasStarted();
 	void HandleCooldown();
 
+	void BroadcastElimination( APlayerState* Attacker, APlayerState* Victim );
+
 	float SingleTripTime = 0.f;
 
 	FHighPingDelegate HighPingDelegate;
 
 protected:
+
+	UFUNCTION(Client, Reliable)
+	void ClientEliminationAnnouncement( APlayerState* Attacker, APlayerState* Victim );
 
 	void ShowReturnToMainMenu( const FInputActionValue& Value );
 	/*

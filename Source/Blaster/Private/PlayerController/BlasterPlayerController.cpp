@@ -102,7 +102,7 @@ void ABlasterPlayerController::CheckPing( float DeltaTime )
 		PlayerState = !PlayerState ? GetPlayerState<APlayerState>() : PlayerState;
 		if (PlayerState)
 		{
-			GEngine->AddOnScreenDebugMessage( 1, 4.f, FColor::Red, FString::Printf(TEXT("Ping: %d"), PlayerState->GetCompressedPing() * 4 ));
+			//GEngine->AddOnScreenDebugMessage( 1, 4.f, FColor::Red, FString::Printf(TEXT("Ping: %d"), PlayerState->GetCompressedPing() * 4 ));
 
 			// Compressed ping. This function returns ping/4.  That is why we get the ping ourselves in CheckTimeSync(). For a high ping warning this is okay
 			if (PlayerState->GetCompressedPing() * 4 > HighPingThreshold) // Warning: Dont use GetPing(). use GetCompressedPing or GetPingInMilliseconds
@@ -626,5 +626,43 @@ void ABlasterPlayerController::HandleCooldown()
 	{
 		BlasterCharacter->bDisableGameplay = true;
 		BlasterCharacter->GetCombat()->FireButtonPressed(false);
+	}
+}
+
+void ABlasterPlayerController::BroadcastElimination( APlayerState* Attacker, APlayerState* Victim )
+{
+	ClientEliminationAnnouncement( Attacker, Victim );
+}
+
+void ABlasterPlayerController::ClientEliminationAnnouncement_Implementation( APlayerState* Attacker, APlayerState* Victim )
+{
+	APlayerState* Self = GetPlayerState<APlayerState>();
+	if (Attacker && Victim && Self)
+	{
+		BlasterHUD = BlasterHUD ? BlasterHUD : Cast<ABlasterHUD>( GetHUD() );
+		if (BlasterHUD)
+		{
+			if (Attacker == Self && Victim != Self)
+			{
+				BlasterHUD->AddEliminationAnnouncement( "You", Victim->GetPlayerName() );
+				return;
+			}
+			if (Victim == Self && Attacker != Self)
+			{
+				BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), "You" );
+				return;
+			}
+			if (Attacker == Victim && Attacker == Self)
+			{
+				BlasterHUD->AddEliminationAnnouncement( "You", "Yourself");
+				return;
+			}
+			if (Attacker==Victim && Attacker != Self)
+			{
+				BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), "Themselves" );
+				return;
+			}
+			BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), Victim->GetPlayerName() );
+		}
 	}
 }

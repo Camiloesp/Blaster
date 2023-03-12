@@ -5,6 +5,10 @@
 #include "GameFramework/PlayerController.h"
 #include "HUD/CharacterOverlay.h"
 #include "HUD/Announcement.h"
+#include "HUD/EliminationAnnouncement.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/HorizontalBox.h"
+#include "Components/CanvasPanelSlot.h"
 
 void ABlasterHUD::DrawHUD()
 {
@@ -71,6 +75,49 @@ void ABlasterHUD::AddAnnouncement()
 	}
 }
 
+void ABlasterHUD::AddEliminationAnnouncement( FString Attacker, FString Victim )
+{
+	OwningPlayer = !OwningPlayer ? GetOwningPlayerController() : OwningPlayer;
+	if (OwningPlayer && EliminationAnnouncementClass)
+	{
+		UEliminationAnnouncement* EliminationAnnouncementWidget = CreateWidget<UEliminationAnnouncement>( OwningPlayer, EliminationAnnouncementClass );
+		if (EliminationAnnouncementWidget)
+		{
+			EliminationAnnouncementWidget->SetEliminationAnnouncementText( Attacker, Victim );
+			EliminationAnnouncementWidget->AddToViewport();
+
+			for (UEliminationAnnouncement* Message : EliminationMessages)
+			{
+				if (Message && Message->AnnouncementBox)
+				{
+					UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot( Message->AnnouncementBox );
+					if (CanvasSlot)
+					{
+						FVector2D Position = CanvasSlot->GetPosition();
+						FVector2D NewPosition = FVector2D(CanvasSlot->GetPosition().X, Position.Y - CanvasSlot->GetSize().Y);
+						CanvasSlot->SetPosition( NewPosition );
+					}
+				}
+			}
+
+			EliminationMessages.Add( EliminationAnnouncementWidget );
+
+			FTimerHandle EliminationMessageTimer;
+			FTimerDelegate EliminationMessageDelegate;
+			EliminationMessageDelegate.BindUFunction( this, FName("ELiminationAnnouncementTimerFinished"), EliminationAnnouncementWidget );
+			GetWorldTimerManager().SetTimer( EliminationMessageTimer, EliminationMessageDelegate, EliminationAnnouncementTime, false );
+		}
+	}
+}
+
+void ABlasterHUD::ELiminationAnnouncementTimerFinished( UEliminationAnnouncement* MessageToRemove )
+{
+	if (MessageToRemove)
+	{
+		MessageToRemove->RemoveFromParent();
+	}
+}
+
 void ABlasterHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread, FLinearColor CrosshairColor)
 {
 	const float TextureWidth = Texture->GetSizeX();
@@ -93,3 +140,4 @@ void ABlasterHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, F
 		CrosshairColor
 	);
 }
+
