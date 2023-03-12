@@ -542,13 +542,15 @@ FFramePackage ULagCompensationComponent::GetFrameToCheck( ABlasterCharacter* Hit
 	return FrameToCheck;
 }
 
-void ULagCompensationComponent::ServerScoreRequest_Implementation( ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime, AWeapon* DamageCauser )
+void ULagCompensationComponent::ServerScoreRequest_Implementation( ABlasterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime )
 {
 	FServerSideRewindResult Confirm = ServerSideRewind( HitCharacter, TraceStart, HitLocation, HitTime );
 
-	if (Character && HitCharacter && DamageCauser && Confirm.bHitConfirmed)
+	if (Character && HitCharacter && Character->GetEquippedWeapon() && Confirm.bHitConfirmed)
 	{
-		UGameplayStatics::ApplyDamage( HitCharacter, DamageCauser->GetDamage(), Character->Controller, DamageCauser, UDamageType::StaticClass() );
+		const float Damage = Confirm.bHeadshot ? Character->GetEquippedWeapon()->GetHeadShotDamage() : Character->GetEquippedWeapon()->GetDamage();
+
+		UGameplayStatics::ApplyDamage( HitCharacter, Damage, Character->Controller, Character->GetEquippedWeapon(), UDamageType::StaticClass() );
 	}
 }
 
@@ -556,9 +558,11 @@ void ULagCompensationComponent::ProjectileServerScoreRequest_Implementation( ABl
 {
 	FServerSideRewindResult Confirm = ProjectileServerSideRewind( HitCharacter, TraceStart, InitialVelocity, HitTime );
 
-	if (Character && HitCharacter && Confirm.bHitConfirmed)
+	if (Character && HitCharacter && Confirm.bHitConfirmed && Character->GetEquippedWeapon())
 	{
-		UGameplayStatics::ApplyDamage( HitCharacter, HitCharacter->GetEquippedWeapon()->GetDamage(), Character->Controller, HitCharacter->GetEquippedWeapon(), UDamageType::StaticClass());
+		const float Damage = Confirm.bHeadshot ? Character->GetEquippedWeapon()->GetHeadShotDamage() : Character->GetEquippedWeapon()->GetDamage();
+
+		UGameplayStatics::ApplyDamage( HitCharacter, Damage, Character->Controller, HitCharacter->GetEquippedWeapon(), UDamageType::StaticClass());
 	}
 }
 
@@ -574,7 +578,7 @@ void ULagCompensationComponent::ShotgunServerScoreRequest_Implementation( const 
 
 		if (Confirm.HeadShots.Contains( HitCharacter ))
 		{
-			float HeadShotDamage = Confirm.HeadShots[HitCharacter] * HitCharacter->GetEquippedWeapon()->GetDamage();
+			float HeadShotDamage = Confirm.HeadShots[HitCharacter] * HitCharacter->GetEquippedWeapon()->GetHeadShotDamage();
 			TotalDamage += HeadShotDamage;
 		}
 		if (Confirm.BodyShots.Contains( HitCharacter ))

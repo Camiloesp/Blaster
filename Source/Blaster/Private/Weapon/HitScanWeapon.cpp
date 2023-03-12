@@ -35,7 +35,8 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 			// server does not need to worry about ServerRewind since hosts are the server and have no lag.
 			if (HasAuthority() && bCauseAuthDamage)
 			{
-				UGameplayStatics::ApplyDamage(BlasterCharacter, Damage, InstigatorController, this, UDamageType::StaticClass());
+				const float DamageToCause = FireHit.BoneName.ToString() == FString( "head" ) ? HeadShotDamage : Damage;
+				UGameplayStatics::ApplyDamage(BlasterCharacter, DamageToCause, InstigatorController, this, UDamageType::StaticClass());
 			}
 
 			if (!HasAuthority() && bUseServerSideRewind)
@@ -48,8 +49,7 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 						BlasterCharacter, 
 						Start, 
 						HitTarget, 
-						BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime,
-						this
+						BlasterOwnerController->GetServerTime() - BlasterOwnerController->SingleTripTime
 					);
 				}
 			}
@@ -94,6 +94,10 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 		if (OutHit.bBlockingHit)
 		{
 			BeamEnd = OutHit.ImpactPoint;
+		}
+		else
+		{
+			OutHit.ImpactPoint = End;
 		}
 		//DrawDebugSphere(GetWorld(), BeamEnd, 16.f, 12, FColor::Orange, true);
 		if (BeamParticles)
