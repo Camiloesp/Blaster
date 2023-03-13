@@ -4,6 +4,7 @@
 #include "Weapon/Flag.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Character/BlasterCharacter.h"
 
 AFlag::AFlag()
 {
@@ -17,6 +18,13 @@ AFlag::AFlag()
 	GetPickupWidget()->SetupAttachment( FlagMesh );
 }
 
+void AFlag::BeginPlay()
+{
+	Super::BeginPlay();
+
+	InitialTransform = GetActorTransform();
+}
+
 void AFlag::Dropped()
 {
 	SetWeaponState( EWeaponState::EWS_Dropped );
@@ -25,6 +33,31 @@ void AFlag::Dropped()
 	SetOwner( nullptr );
 	BlasterOwnerCharacter = nullptr;
 	BlasterOwnerController = nullptr;
+}
+
+void AFlag::ResetFlag()
+{
+	ABlasterCharacter* FlagBearer = Cast<ABlasterCharacter>( GetOwner() );
+	if (FlagBearer)
+	{
+		FlagBearer->SetHoldingTheFlag( false );
+		FlagBearer->SetOverlappingWeapon( nullptr );
+		FlagBearer->UnCrouch();
+	}
+	FDetachmentTransformRules DetachRules( EDetachmentRule::KeepWorld, true );
+	FlagMesh->DetachFromComponent( DetachRules );
+
+	if (!HasAuthority()) return;
+
+	SetWeaponState( EWeaponState::EWS_Initial );
+	GetAreaSphere()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetAreaSphere()->SetCollisionResponseToChannel( ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap );
+
+	SetOwner( nullptr );
+	BlasterOwnerCharacter = nullptr;
+	BlasterOwnerController = nullptr;
+
+	SetActorTransform( InitialTransform );
 }
 
 void AFlag::OnEquipped()

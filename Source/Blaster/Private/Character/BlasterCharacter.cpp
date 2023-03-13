@@ -246,6 +246,12 @@ void ABlasterCharacter::RotateInPlace(float DeltaTime)
 		return;
 	}
 
+	if (Combat && Combat->EquippedWeapon)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		bUseControllerRotationYaw = true;
+	}
+
 	if (bDisableGameplay)
 	{
 		bUseControllerRotationYaw = false;
@@ -1175,7 +1181,7 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon* NewOverlappingWeapon)
 
 void ABlasterCharacter::SetHoldingTheFlag( bool bHolding )
 {
-	if (Combat == nullptr) return;
+	if (!Combat) return;
 	Combat->bHoldingTheFlag = bHolding;
 }
 

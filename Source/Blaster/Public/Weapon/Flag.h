@@ -17,12 +17,16 @@ class BLASTER_API AFlag : public AWeapon
 public:
 	AFlag();
 
+protected:
 
-		/* AFlag */
+	virtual void BeginPlay() override;
 
+
+	/* AFlag */
 public:
 
 	virtual void Dropped() override;
+	void ResetFlag();
 
 protected:
 
@@ -34,4 +38,8 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* FlagMesh;
 
+	FTransform InitialTransform;
+
+public:
+	FORCEINLINE FTransform GetInitialTransform() const { return InitialTransform; }
 };
