@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "WeaponTypes.h"
+#include "BlasterTypes/Team.h"
 #include "Weapon.generated.h"
 
 class USphereComponent;
@@ -107,7 +108,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
 
-	
+	UPROPERTY( EditAnywhere )
+	ETeam Team;
 
 protected:
 	
@@ -193,7 +195,7 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 
 	virtual void Fire(const FVector& HitTarget);
-	void Dropped();
+	virtual void Dropped();
 
 	void AddAmmo(int32 AmmoToAdd);
 
@@ -217,6 +219,7 @@ public:
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	FORCEINLINE float GetDamage() const { return Damage; }
 	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
+	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 	bool IsEmpty();
 	bool IsFull();
 

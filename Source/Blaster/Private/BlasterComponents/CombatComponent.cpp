@@ -41,6 +41,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly); 
 	DOREPLIFETIME(UCombatComponent, CombatState);
 	DOREPLIFETIME(UCombatComponent, Grenades);
+	DOREPLIFETIME( UCombatComponent, bHoldingTheFlag );
 }
 
 // Called when the game starts
@@ -312,17 +313,29 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	if (!Character || !WeaponToEquip) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
-	if (EquippedWeapon && !SecondaryWeapon)
+	if (WeaponToEquip->GetWeaponType() == EWeaponType::EFT_Flag)
 	{
-		EquipSecondaryWeapon(WeaponToEquip);
+		Character->Crouch();
+		bHoldingTheFlag = true;
+		WeaponToEquip->SetWeaponState( EWeaponState::EWS_Equipped );
+		AttachFlagToLeftHand( WeaponToEquip );
+		WeaponToEquip->SetOwner( Character );
+		TheFlag = WeaponToEquip;
 	}
 	else
 	{
-		EquipPrimaryWeapon( WeaponToEquip );
-	}
+		if (EquippedWeapon && !SecondaryWeapon)
+		{
+			EquipSecondaryWeapon( WeaponToEquip );
+		}
+		else
+		{
+			EquipPrimaryWeapon( WeaponToEquip );
+		}
 
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
 }
 
 void UCombatComponent::EquipPrimaryWeapon( AWeapon* WeaponToEquip )
@@ -410,6 +423,16 @@ void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach)
 	if (HandSocket)
 	{
 		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
+	}
+}
+
+void UCombatComponent::AttachFlagToLeftHand( AWeapon* Flag )
+{
+	if (!Character || !Character->GetMesh() || !Flag) return;
+	const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName( FName( "FlagSocket" ) );
+	if (HandSocket)
+	{
+		HandSocket->AttachActor( Flag, Character->GetMesh() );
 	}
 }
 
@@ -674,6 +697,14 @@ void UCombatComponent::UpdateHUDGrenades()
 	if (Controller)
 	{
 		Controller->SetHUDGrenades(Grenades);
+	}
+}
+
+void UCombatComponent::OnRep_HoldingTheFlag()
+{
+	if (bHoldingTheFlag && Character && Character->IsLocallyControlled())
+	{
+		Character->Crouch();
 	}
 }
 

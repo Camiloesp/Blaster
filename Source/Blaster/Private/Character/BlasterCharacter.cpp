@@ -237,6 +237,14 @@ void ABlasterCharacter::SetupInputMappingContext()
 
 void ABlasterCharacter::RotateInPlace(float DeltaTime)
 {
+	if (Combat && Combat->bHoldingTheFlag)
+	{
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+
 	if (bDisableGameplay)
 	{
 		bUseControllerRotationYaw = false;
@@ -289,6 +297,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void ABlasterCharacter::Jump()
 {
+	if (Combat && Combat->bHoldingTheFlag) return;
 	if (bDisableGameplay) return;
 
 	Super::Jump();
@@ -401,6 +410,7 @@ void ABlasterCharacter::EquipButtonPressed(const FInputActionValue& Value)
 	// Equip weapon on server.
 	if (Combat)
 	{
+		if (Combat->bHoldingTheFlag) return;
 		// We dont want to do important stuff like equipping weapons on clients. Tell server to do it.
 		if (Combat->CombatState == ECombatState::ECS_Unoccupied) ServerEquipButtonPressed( Value );
 		bool bSwap = Combat->ShouldSwapWeapons() && 
@@ -435,6 +445,7 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation(const FInputActi
 
 void ABlasterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
 {
+	if (Combat && Combat->bHoldingTheFlag) return;
 	if (bDisableGameplay) return; // disable action when dead.
 
 	if (bIsCrouched)
@@ -448,6 +459,7 @@ void ABlasterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
 }
 void ABlasterCharacter::ReloadButtonPressed(const FInputActionValue& Value)
 {
+	if (Combat && Combat->bHoldingTheFlag) return;
 	if (bDisableGameplay) return; // disable action when dead.
 
 	if (Combat)
@@ -459,6 +471,7 @@ void ABlasterCharacter::ReloadButtonPressed(const FInputActionValue& Value)
 
 void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 {
+	if (Combat && Combat->bHoldingTheFlag) return;
 	if (bDisableGameplay) return; // disable action when dead.
 
 	if (Combat)
@@ -469,6 +482,7 @@ void ABlasterCharacter::AimButtonPressed(const FInputActionValue& Value)
 }
 void ABlasterCharacter::FireButtonPressed(const FInputActionValue& Value)
 {
+	if (Combat && Combat->bHoldingTheFlag) return;
 	if (bDisableGameplay) return; // disable action when dead.
 
 	bool Input = Value.Get<bool>();
@@ -484,6 +498,7 @@ void ABlasterCharacter::FireButtonReleased(const FInputActionValue& Value)
 
 	if (Combat)
 	{
+		if (Combat->bHoldingTheFlag) return;
 		//GEngine->AddOnScreenDebugMessage(1, 10.f, FColor::Red, FString("Released!"));
 		Combat->FireButtonPressed(false);
 	}
@@ -493,6 +508,7 @@ void ABlasterCharacter::GrenadeButtonPressed(const FInputActionValue& Value)
 {
 	if (Combat )
 	{
+		if (Combat->bHoldingTheFlag) return;
 		Combat->ThrowGrenade();
 	}
 }
@@ -865,6 +881,11 @@ void ABlasterCharacter::DropOrDestroyWeapons()
 		{
 			DropOrDestroyWeapon( Combat->SecondaryWeapon );
 		}
+
+		if (Combat->TheFlag)
+		{
+			Combat->TheFlag->Dropped();
+		}
 	}
 }
 
@@ -1093,6 +1114,14 @@ bool ABlasterCharacter::IsLocallyReloading()
 	return Combat->bLocallyReloading;
 }
 
+ETeam ABlasterCharacter::GetTeam()
+{
+	BlasterPlayerState = !BlasterPlayerState ? GetPlayerState<ABlasterPlayerState>() : BlasterPlayerState;
+	if (!BlasterPlayerState) return ETeam::ET_NoTeam;
+
+	return BlasterPlayerState->GetTeam();
+}
+
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* NewOverlappingWeapon)
 {
 	if (IsLocallyControlled())
@@ -1113,6 +1142,12 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon* NewOverlappingWeapon)
 	}
 }
 
+void ABlasterCharacter::SetHoldingTheFlag( bool bHolding )
+{
+	if (Combat == nullptr) return;
+	Combat->bHoldingTheFlag = bHolding;
+}
+
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if (OverlappingWeapon)
@@ -1123,4 +1158,10 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
 	}
+}
+
+bool ABlasterCharacter::IsHoldingTheFlag() const
+{
+	if (!Combat) return false;
+	return Combat->bHoldingTheFlag;
 }

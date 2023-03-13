@@ -384,15 +384,18 @@ public:
 	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	FORCEINLINE UInputMappingContext* GetInputMappingContext() const { return BlasterMappingContext; }
 	FORCEINLINE UBlasterInputConfigData* GetInputConfigData() const { return InputConfigData; }
+	FORCEINLINE bool IsHoldingTheFlag() const;
 	AWeapon* GetEquippedWeapon();
 	FVector GetHitTarget() const;
 	ECombatState GetCombatState() const;
 	bool IsLocallyReloading();
+	ETeam GetTeam();
 
 	/* Setters */
 	FORCEINLINE void SetHealth( float Amount ) { Health = Amount; }
 	FORCEINLINE void SetShield( float Amount ) { Shield = Amount; }
 	void SetOverlappingWeapon(AWeapon* NewOverlappingWeapon);
+	void SetHoldingTheFlag( bool bHolding );
 
 
 	UFUNCTION(BlueprintImplementableEvent)

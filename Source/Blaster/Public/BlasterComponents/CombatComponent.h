@@ -149,6 +149,14 @@ private:
 	int32 MaxGrenades = 4;
 	void UpdateHUDGrenades();
 
+	UPROPERTY(ReplicatedUsing = OnRep_HoldingTheFlag)
+	bool bHoldingTheFlag = false;
+	UFUNCTION()
+	void OnRep_HoldingTheFlag();
+
+	UPROPERTY()
+	AWeapon* TheFlag;
+
 protected:
 
 	void SetAiming(bool bIsAiming);
@@ -202,6 +210,7 @@ protected:
 	void DropEquippedWeapon();
 	void AttachActorToRightHand(AActor* ActorToAttach);
 	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void AttachFlagToLeftHand( AWeapon* Flag );
 	void AttachActorToBackpack( AActor* ActorToAttach );
 	void UpdateCarriedAmmo();
 	void PlayEquipWeaponSound(AWeapon* WeaponToEquip);
