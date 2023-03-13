@@ -206,6 +206,12 @@ private:
 	*/
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* EliminationBotEffect;
+
+	UPROPERTY( EditAnywhere )
+	UParticleSystem* EliminationBotEffectRed;
+	UPROPERTY( EditAnywhere )
+	UParticleSystem* EliminationBotEffectBlue;
+
 	UPROPERTY(VisibleAnywhere)
 	UParticleSystemComponent* EliminationBotComponent;
 	UPROPERTY(EditAnywhere)

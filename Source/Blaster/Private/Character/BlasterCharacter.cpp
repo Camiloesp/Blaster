@@ -1102,10 +1102,12 @@ void ABlasterCharacter::SetTeamColor( ETeam Team )
 		case ETeam::ET_BlueTeam:
 			GetMesh()->SetMaterial( 0, BlueMaterial );
 			DissolveMaterialInstance = BlueDissolveMatInst;
+			EliminationBotEffect = EliminationBotEffectBlue;
 			break;
 		case ETeam::ET_RedTeam:
 			GetMesh()->SetMaterial( 0, RedMaterial );
 			DissolveMaterialInstance = RedDissolveMatInst;
+			EliminationBotEffect = EliminationBotEffectRed;
 			break;
 	}
 }
