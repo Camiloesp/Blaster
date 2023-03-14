@@ -12,6 +12,7 @@ class UCharacterOverlay;
 class UUserWidget;
 class UAnnouncement;
 class UEliminationAnnouncement;
+class APlayerState;
 
 USTRUCT(BlueprintType)
 struct FHUDPackage
@@ -54,7 +55,7 @@ public:
 	UAnnouncement* Announcement;
 	void AddAnnouncement();
 
-	void AddEliminationAnnouncement( FString Attacker, FString Victim );
+	void AddEliminationAnnouncement( FString Attacker, FString Victim, APlayerState* AttackerState, APlayerState* VictimState );
 
 protected:
 

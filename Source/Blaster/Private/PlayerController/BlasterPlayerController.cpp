@@ -797,25 +797,25 @@ void ABlasterPlayerController::ClientEliminationAnnouncement_Implementation( APl
 		{
 			if (Attacker == Self && Victim != Self)
 			{
-				BlasterHUD->AddEliminationAnnouncement( "You", Victim->GetPlayerName() );
+				BlasterHUD->AddEliminationAnnouncement( "You", Victim->GetPlayerName(), Attacker, Victim );
 				return;
 			}
 			if (Victim == Self && Attacker != Self)
 			{
-				BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), "You" );
+				BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), "You", Attacker, Victim );
 				return;
 			}
 			if (Attacker == Victim && Attacker == Self)
 			{
-				BlasterHUD->AddEliminationAnnouncement( "You", "Yourself");
+				BlasterHUD->AddEliminationAnnouncement( "You", "Yourself", Attacker, Victim );
 				return;
 			}
 			if (Attacker==Victim && Attacker != Self)
 			{
-				BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), "Themselves" );
+				BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), "Themselves", Attacker, Victim );
 				return;
 			}
-			BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), Victim->GetPlayerName() );
+			BlasterHUD->AddEliminationAnnouncement( Attacker->GetPlayerName(), Victim->GetPlayerName(), Attacker, Victim );
 		}
 	}
 }

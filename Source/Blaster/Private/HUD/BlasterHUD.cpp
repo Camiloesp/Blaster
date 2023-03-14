@@ -75,7 +75,7 @@ void ABlasterHUD::AddAnnouncement()
 	}
 }
 
-void ABlasterHUD::AddEliminationAnnouncement( FString Attacker, FString Victim )
+void ABlasterHUD::AddEliminationAnnouncement( FString Attacker, FString Victim, APlayerState* AttackerState, APlayerState* VictimState )
 {
 	OwningPlayer = !OwningPlayer ? GetOwningPlayerController() : OwningPlayer;
 	if (OwningPlayer && EliminationAnnouncementClass)
@@ -83,7 +83,9 @@ void ABlasterHUD::AddEliminationAnnouncement( FString Attacker, FString Victim )
 		UEliminationAnnouncement* EliminationAnnouncementWidget = CreateWidget<UEliminationAnnouncement>( OwningPlayer, EliminationAnnouncementClass );
 		if (EliminationAnnouncementWidget)
 		{
-			EliminationAnnouncementWidget->SetEliminationAnnouncementText( Attacker, Victim );
+			// GET playerstate for both
+
+			EliminationAnnouncementWidget->SetEliminationAnnouncementText( Attacker, Victim, AttackerState, VictimState );
 			EliminationAnnouncementWidget->AddToViewport();
 
 			for (UEliminationAnnouncement* Message : EliminationMessages)

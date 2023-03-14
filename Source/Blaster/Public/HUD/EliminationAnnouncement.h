@@ -8,6 +8,7 @@
 
 class UHorizontalBox;
 class UTextBlock;
+class APlayerState;
 /**
  * 
  */
@@ -24,5 +25,10 @@ public:
 	UPROPERTY( meta = (BindWidget) )
 	UTextBlock* AnnouncementText;
 
-	void SetEliminationAnnouncementText( FString AttackerName, FString VictimName );
+	UPROPERTY( meta = (BindWidget) )
+	UTextBlock* KillerNameText;
+	UPROPERTY( meta = (BindWidget) )
+	UTextBlock* VictimNameText;
+
+	void SetEliminationAnnouncementText( FString AttackerName, FString VictimName, APlayerState* Attacker, APlayerState* Victim ); // APlayerState* Attacker, APlayerState* Victim Cast<ABlasterPlayerState>( AttackerState );
 };
