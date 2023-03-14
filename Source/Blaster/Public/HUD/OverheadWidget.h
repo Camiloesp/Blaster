@@ -16,8 +16,8 @@ class BLASTER_API UOverheadWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-
-	UPROPERTY(meta = (BindWidget))
+	
+	UPROPERTY( meta = (BindWidget))
 	UTextBlock* DisplayText;
 
 	void SetDisplayText(FString TextToDisplay);

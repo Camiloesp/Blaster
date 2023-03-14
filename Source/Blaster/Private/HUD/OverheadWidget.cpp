@@ -35,6 +35,7 @@ void UOverheadWidget::ShowPlayerNetRole(APawn* InPawn)
 
 	SetDisplayText(RemoteRoleString);
 }
+
 /*
 void UOverheadWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 {

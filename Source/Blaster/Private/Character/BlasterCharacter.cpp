@@ -34,6 +34,8 @@
 #include "PlayerState/BlasterPlayerState.h"
 #include "BlasterComponents/LagCompensationComponent.h"
 #include "Weapon/WeaponTypes.h"
+#include "HUD/OverheadWidget.h"
+#include "Components/TextBlock.h"
 
 
 // Sets default values
@@ -61,6 +63,7 @@ ABlasterCharacter::ABlasterCharacter()
 
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(GetRootComponent());
+	OverheadWidget->SetIsReplicated( true );
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
@@ -1093,6 +1096,8 @@ void ABlasterCharacter::SetTeamColor( ETeam Team )
 {
 	if (!GetMesh() || !OriginalMaterial) return;
 
+	UOverheadWidget* OverheadW = Cast<UOverheadWidget>( OverheadWidget->GetUserWidgetObject() );
+	FSlateColor TeamColor = FSlateColor();
 	switch (Team)
 	{
 		case ETeam::ET_NoTeam:
@@ -1102,12 +1107,18 @@ void ABlasterCharacter::SetTeamColor( ETeam Team )
 		case ETeam::ET_BlueTeam:
 			GetMesh()->SetMaterial( 0, BlueMaterial );
 			DissolveMaterialInstance = BlueDissolveMatInst;
+
 			EliminationBotEffect = EliminationBotEffectBlue;
+			TeamColor = FSlateColor( FColor::Blue );
+			if (OverheadW) OverheadW->DisplayText->SetColorAndOpacity( TeamColor );
 			break;
 		case ETeam::ET_RedTeam:
 			GetMesh()->SetMaterial( 0, RedMaterial );
 			DissolveMaterialInstance = RedDissolveMatInst;
+
 			EliminationBotEffect = EliminationBotEffectRed;
+			TeamColor = FSlateColor( FColor::Red );
+			if (OverheadW) OverheadW->DisplayText->SetColorAndOpacity( TeamColor );
 			break;
 	}
 }
@@ -1128,10 +1139,17 @@ void ABlasterCharacter::SpawnDefaultWeapon()
 	}
 }
 
+void ABlasterCharacter::MulticastSetPlayerName_Implementation( const FString& PlayerName )
+{
+	UOverheadWidget* OverheadW = Cast<UOverheadWidget>( OverheadWidget->GetUserWidgetObject() );
+	if (OverheadW)
+	{
+		OverheadW->DisplayText->SetText( FText::FromString( PlayerName ) );
+	}
+}
+
 AWeapon* ABlasterCharacter::GetEquippedWeapon()
 {
-	//if (!Combat) return nullptr;
-	//return Combat->EquippedWeapon;
 	return Combat ? Combat->EquippedWeapon : nullptr;
 }
 

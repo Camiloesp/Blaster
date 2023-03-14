@@ -33,6 +33,8 @@ class UNiagaraSystem;
 class UNiagaraComponent;
 class ABlasterGameMode;
 
+class UTextRenderComponent;
+
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
 {
@@ -326,6 +328,9 @@ public:
 	void SetTeamColor( ETeam Team );
 
 	void SpawnDefaultWeapon();
+
+	UFUNCTION( NetMulticast, Reliable )
+	void MulticastSetPlayerName( const FString& PlayerName );
 
 	/* 
 	* Hit boxes used for Server-Side rewind.

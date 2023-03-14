@@ -244,6 +244,13 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 			SetHUDWeaponAmmo( BlasterCharacter->GetCombat()->GetEquippedWeapon()->GetAmmo() );
 		}
 
+		ABlasterPlayerState* BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+		if (BlasterPlayerState) // Called on Server.
+		{
+			FString PlayerName = BlasterPlayerState->GetPlayerName();
+			BlasterCharacter->MulticastSetPlayerName( PlayerName ); // multicast
+		}
+
 		SetHUDHealth(BlasterCharacter->GetHealth(), BlasterCharacter->GetMaxHealth());
 		SetHUDShield(BlasterCharacter->GetShield(), BlasterCharacter->GetMaxShield());
 	}
