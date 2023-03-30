@@ -78,6 +78,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* OverheadWidget;
 
+	UPROPERTY(EditAnywhere)
+	UTextRenderComponent* TextRenderComponent;
+
 	/*
 	* Blaster Components
 	*/

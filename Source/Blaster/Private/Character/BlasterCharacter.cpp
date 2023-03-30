@@ -37,6 +37,8 @@
 #include "HUD/OverheadWidget.h"
 #include "Components/TextBlock.h"
 
+#include "Components/TextRenderComponent.h"
+
 
 // Sets default values
 ABlasterCharacter::ABlasterCharacter()
@@ -64,6 +66,11 @@ ABlasterCharacter::ABlasterCharacter()
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(GetRootComponent());
 	OverheadWidget->SetIsReplicated( true );
+
+	TextRenderComponent = CreateDefaultSubobject<UTextRenderComponent>( TEXT("TextRenderComponent"));
+	TextRenderComponent->SetupAttachment( GetRootComponent() );
+	TextRenderComponent->SetIsReplicated( true );
+	TextRenderComponent->SetTextRenderColor( FColor::Black );
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
@@ -1111,14 +1118,16 @@ void ABlasterCharacter::SetTeamColor( ETeam Team )
 			EliminationBotEffect = EliminationBotEffectBlue;
 			TeamColor = FSlateColor( FColor::Blue );
 			if (OverheadW) OverheadW->DisplayText->SetColorAndOpacity( TeamColor );
+			//TextRenderComponent->SetTextRenderColor( FColor::Blue );
 			break;
 		case ETeam::ET_RedTeam:
 			GetMesh()->SetMaterial( 0, RedMaterial );
-			DissolveMaterialInstance = RedDissolveMatInst;
+			//DissolveMaterialInstance = RedDissolveMatInst;
 
 			EliminationBotEffect = EliminationBotEffectRed;
 			TeamColor = FSlateColor( FColor::Red );
 			if (OverheadW) OverheadW->DisplayText->SetColorAndOpacity( TeamColor );
+			//TextRenderComponent->SetTextRenderColor( FColor::Red );
 			break;
 	}
 }
@@ -1146,6 +1155,8 @@ void ABlasterCharacter::MulticastSetPlayerName_Implementation( const FString& Pl
 	{
 		OverheadW->DisplayText->SetText( FText::FromString( PlayerName ) );
 	}
+
+	//TextRenderComponent->SetText( FText::FromString( PlayerName ) );
 }
 
 AWeapon* ABlasterCharacter::GetEquippedWeapon()
